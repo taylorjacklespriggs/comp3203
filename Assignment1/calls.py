@@ -3,11 +3,11 @@ from subprocess import *
 
 def ls(directory):
     '''Calls ls -l $directory'''
-    return check_output(('ls', '-l', directory))
+    return check_output(('ls', '-l', directory)).decode("utf-8")
 
 def cd(directory):
     '''Checks if $directory is valid and returns absolute path'''
-    return check_output(('readlink', '-f', directory))
+    return check_output(('readlink', '-f', directory)).decode("utf-8")[:-1]
 
 def put(filename, content):
     '''Puts $content into $filename'''
