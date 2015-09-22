@@ -15,7 +15,7 @@ class ByteBuffer:
             self._counter.acquire()
             l = len(self._vals[0])
             dl = l - self._read_index
-            if dl < num: # pop the value from the queue
+            if dl <= num: # pop the value from the queue
                 val = self._vals.pop(0)
                 vals.append(val[self._read_index:])
                 self._read_index = 0
@@ -26,7 +26,6 @@ class ByteBuffer:
                 self._read_index = end
                 self._counter.release()
                 num = 0
-        print(vals)
         return b''.join(vals)
     def write_char(self, char):
         try:    char = char.encode('ascii')
