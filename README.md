@@ -1,3 +1,3 @@
 # comp3203
 
-Eric has taking over the test, #notsorry
+Eric has taken over the test, #notsorry
