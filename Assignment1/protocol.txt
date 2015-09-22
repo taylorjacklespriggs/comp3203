@@ -26,3 +26,31 @@ CASE change directory
         server replies with 'inval' and description of error
     CASE user inputs 'cd' with invalid number of arguments
         user receives error message
+CASE put
+    CASE user inputs 'put' with no arguments
+        user receivs error message
+    CASE user inputs 'put' with valid filename
+        'put' gets sent to server
+        1 gets sent to server followed by filename
+        server concatenates filename to current directory
+        server opens temp file for writing
+        server replies with 'ready'
+        client sends file
+        server moves temp file to filename
+        server replies with 'success'
+    CASE user inputs 'put' with invalid filename
+        client receives error message
+    CASE user inputs 'put' with valid filename and destination
+        'put' gets sent to server
+        2 gets sent to server followed by filename and destination
+        server opens temp file for writing
+        server replies with 'ready'
+        client sends file
+        server moves temp file to destination
+        server replies with 'success'
+    CASE user inputs 'put' with valid filename and invalid destination
+        'put' gets sent to server
+        2 gets sent to server followed by filename and destination
+        server replies with 'inval' and error description
+    CASE user inputs 'put' with too many arguments
+        user receives error message
