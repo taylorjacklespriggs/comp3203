@@ -46,7 +46,7 @@ class ClientUI:
                 directorylist = self.controller.ls(args)
             else:
                 directorylist = self.controller.ls(".")
-            print(directorylist)
+            print(str(directorylist, 'utf-8'))
         except DirectoryError:
             print("Directory does not exist on the server...")
 

@@ -37,7 +37,7 @@ class ClientController:
         o.write_string("ls");
         o.write_string(args[0] if len(args) else '.');
         res = i.read_string()
-        if res == 'success':
+        if res == b'success':
             return i.read_string()
         raise Exception(i.read_string())
 
