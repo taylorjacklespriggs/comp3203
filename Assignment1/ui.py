@@ -5,7 +5,7 @@ class UI:
         print("Would you like to start a server? (y, n)")
         beServer = input()
         if beServer[0] == "y":
-            print("Server has been started")
+            print("Server attempting to start...")
             return "server"
         else:
             print("Enter the ip address of the server you would like to connect to:")
