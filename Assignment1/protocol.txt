@@ -10,4 +10,19 @@ CASE list files
         server replies with 'inval' and description of problem
     CASE user inputs 'ls' with too many arguments
         user receives error message
-
+CASE change directory
+    CASE user inputs 'cd'
+        'cd' gets sent to server, followed by 0 for zero args
+        server sets clients current directory to original directory
+        server replies with 'success' and new directory
+    CASE user inputs 'cd' with valid path
+        'cd' gets sent to server
+        1 gets sent to server followed by path
+        server sets clients current directory to path
+        server replies with 'success' and path
+    CASE user inputs 'cd' with invalid path
+        'cd' gets sent to server
+        1 gets sent to server followed by path
+        server replies with 'inval' and description of error
+    CASE user inputs 'cd' with invalid number of arguments
+        user receives error message
