@@ -6,9 +6,11 @@ class UI:
         beServer = input()
         if beServer[0] == "y":
             print("Server has been started")
+            return "server"
         else:
             print("Enter the ip address of the server you would like to connect to:")
             ip = input()
+            return ip
 
 if __name__ == "__main__":
     ui = UI()
