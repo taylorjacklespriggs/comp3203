@@ -18,21 +18,21 @@ class ServerController:
     def start(self):
         self.server.start()
 
-    def list_files(self, i, o, cls):
+    def list_files(self, i, o, clis):
         ### get the path from  i
         path = i.read_string()
         
-        o.write_string(ls(cls.directory))
+        o.write_string(ls(clis.directory))
 
-    def change_dir(self, i, o, cls): pass
+    def change_dir(self, i, o, clis): pass
         ### change directory
 
-    def put_in_file(self, i, o, cls): pass
+    def put_in_file(self, i, o, clis): pass
 
-    def get_file(self, i, o cls): pass
+    def get_file(self, i, o clis): pass
 
     def handle_client(self, cl):
-        cls = clientsession.ClientSession()
+        clis = clientsession.ClientSession()
         i, o = cl.get_buffers()
         while True:
             message = i.read_string()
@@ -40,7 +40,7 @@ class ServerController:
             try:
                 print(message)
                 o_write_string("Test worked!")
-                ### self._commands[message](i, o, cls)
+                ### self._commands[message](i, o, clis)
             except:
                 print("Server received an invalid command")
                 o.write_string("inval")
