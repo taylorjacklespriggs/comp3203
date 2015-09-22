@@ -21,7 +21,6 @@ class ServerController:
     def list_files(self, i, o, clis):
         ### get the path from  i
         path = i.read_string()
-        
         o.write_string(ls(clis.directory))
 
     def change_dir(self, i, o, clis): pass
@@ -37,10 +36,8 @@ class ServerController:
         i, o = cl.get_buffers()
         while True:
             message = i.read_string()
-            print(message)
             try:
-                o.write_string("Test worked!")
-                ### self._commands[message](i, o, clis)
+                self._commands[message](i, o, clis)
             except:
                 print("Server received an invalid command")
                 o.write_string("inval")
