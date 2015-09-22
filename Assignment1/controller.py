@@ -1,6 +1,6 @@
 import ui
-import clientui
-import clientsession
+import clientcontroller
+import servercontroller
 
 class Controller:
     def __init__(self):
@@ -12,18 +12,9 @@ class Controller:
         print(selection)
         if selection == "server":
             print("Server will now start...")
+            servercontrl = servercontroller.ServerController()
+            servercontrl.start()
         else:
             print("Connecting to server at {ip}...".format(ip=selection))
-            session = clientsession.ClientSession("./gibberish")
-            print(session)
-            client_view = clientui.ClientUI(self)
-            client_view.start()
-    def ls(directory):
-        print("ls command received: {1}".format(directory))
-        return "LS RETURN VALUE"
-    def cd(directory):
-        print("cd command received: {1}".format(directory))
-        return "CD RETURN VALUE"
-    def put(srcfile, dstfile):
-        print("put command received: {1}, {2}".format(srcfile, dstfile))
-        return "PUT  RETURN VALUE"
+            clientcontrl = clientcontroller.ClientController(selection)
+            clientcontrl.start()
