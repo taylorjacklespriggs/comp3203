@@ -20,7 +20,7 @@ class ServerController:
 
     def list_files(self, i, o, clis):
         ### get the path from  i
-        o.write_string("SUCCESS!")
+        o.write_string("success")
         path = i.read_string()
         o.write_string(ls(clis.current_directory))
 
