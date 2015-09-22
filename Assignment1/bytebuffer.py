@@ -64,7 +64,7 @@ class ByteBuffer:
         return struct.unpack(">I", self._flush(4))[0]
     def read_string(self):
         l = self.read_int()
-        return str(self._flush(l), 'utf-8')
+        return self._flush(l)
     def read_bytes(self, num):
         return self._flush(num)
     def read_file(self, f):
