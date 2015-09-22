@@ -1,6 +1,8 @@
 
 class ClientUI:
     def __init__(self, controller):
+        self.commands = {"h": self.showhelp, "ls": self.ls, "cd": self.cd,
+                "put": self.put, "get": self.get}
         self.controller = controller
 
     def start(self):
@@ -16,20 +18,12 @@ class ClientUI:
         ''' redirects the interface to call the correct function based on
             user input
             Returns 1 when the user wants to close the client connection'''
-        if command[0] == "h":
-            self.showhelp()
-        if command[0] == "ls":
-            self.ls(command[1])
-        if command[0] == "cd":
-            self.cd(command[1])
-        if command[0] == "put":
-            self.put(command[1], command[2])
-        if command[0] == "get":
-            self.put(command[1], command[2])
         if command[0] == "q":
             return 1;
 
-    def showhelp(self):
+        self.commands[command[0]](command[1:])
+
+    def showhelp(self, args):
         ''' displays command help to the user for using the client '''
         print("Commands:\n\th - displays the command help\n\t" +
                 "q -  stops the client\n\t" +
@@ -38,40 +32,40 @@ class ClientUI:
                 "put <src> <dest> - put the src file from the client to the dest file on the server\n\t" +
                 "get <src> <dest> - get the src file from the server to the destination file on the client\n\t")
 
-    def ls(self, directory):
+    def ls(self, args):
         ''' asks the controller to return a list of everything in
             the current directory on the server'''
         try:
-            directorylist = self.controller.ls(directory)
+            directorylist = self.controller.ls(args[0])
             print(directorylist)
         except DirectoryError:
             print("Directory does not exist on the server...")
 
-    def cd(self, directory):
+    def cd(self, args):
         ''' asks the controller to move the user to another directory on the
             server '''
         try:
-            currentdirectory = self.controller.cd(directory)
+            currentdirectory = self.controller.cd(args[0])
             print("Current directory: " + currentdirectory)
         except DirectoryError:
             print("Directory does not exist on the server...")
 
-    def put(self, srcfile, destfile):
+    def put(self, args):
         ''' sends the source filename and destination filename to the
             controller for transferring a file from the client to the server '''
         try:
-            self.controller.put(srcfile, destfile)
+            self.controller.put(args[0], args[1])
             print("transfer successful!")
         except PutServerError:
             print("Could not write to server...")
         except PutClientError:
             print("Could not find file on client...")
 
-    def get(self, srcfile, destfile):
+    def get(self, args):
         ''' sends the source filename and destination filename to the controller
             for transferring a file from the server to the client '''
         try:
-            self.controller.get(srcfile, destfile)
+            self.controller.get(args[0], args[1])
             print("transfer successful!")
         except GetServerError:
             print("Could not find file on server...")
