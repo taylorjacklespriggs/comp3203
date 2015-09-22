@@ -39,7 +39,7 @@ class ServerController:
             message = i.read_string()
             print(message)
             try:
-                o_write_string("Test worked!")
+                o.write_string("Test worked!")
                 ### self._commands[message](i, o, clis)
             except:
                 print("Server received an invalid command")
