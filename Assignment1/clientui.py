@@ -36,7 +36,10 @@ class ClientUI:
         ''' asks the controller to return a list of everything in
             the current directory on the server'''
         try:
-            directorylist = self.controller.ls(args[0])
+            if len(args):
+                directorylist = self.controller.ls(args[0])
+            else:
+                directorylist = self.controller.ls()
             print(directorylist)
         except DirectoryError:
             print("Directory does not exist on the server...")
@@ -49,6 +52,8 @@ class ClientUI:
             print("Current directory: " + currentdirectory)
         except DirectoryError:
             print("Directory does not exist on the server...")
+        except IndexError:
+            print("Please include the directory you wish to move to...")
 
     def put(self, args):
         ''' sends the source filename and destination filename to the
@@ -60,6 +65,8 @@ class ClientUI:
             print("Could not write to server...")
         except PutClientError:
             print("Could not find file on client...")
+        except IndexError:
+            print("Make sure you include both a source and destination file...")
 
     def get(self, args):
         ''' sends the source filename and destination filename to the controller
@@ -71,6 +78,8 @@ class ClientUI:
             print("Could not find file on server...")
         except GetClientError:
             print("Could not write file to client...")
+        except IndexError:
+            print("Make sure you include both a source and destination file...")
 
 if __name__ == "__main__":
     client = ClientUI()
