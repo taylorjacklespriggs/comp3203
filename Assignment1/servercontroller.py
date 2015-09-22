@@ -29,7 +29,7 @@ class ServerController:
 
     def put_in_file(self, i, o, clis): pass
 
-    def get_file(self, i, o clis): pass
+    def get_file(self, i, o, clis): pass
 
     def handle_client(self, cl):
         clis = clientsession.ClientSession()
