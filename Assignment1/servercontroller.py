@@ -2,7 +2,7 @@ from socket import *
 
 import server
 import clientsession
-import * from calls
+from calls import *
 
 class ServerController:
     def __init__(self):
