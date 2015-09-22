@@ -26,6 +26,8 @@ class ClientUI:
             self.commands[command[0]](command[1:])
         except IndexError:
             print("Please enter a command")
+        except KeyError:
+            print("Please enter a valid command")
 
     def showhelp(self, args):
         ''' displays command help to the user for using the client '''
