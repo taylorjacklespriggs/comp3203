@@ -24,7 +24,7 @@ class ServerController:
         
         o.write_string(ls(cls.directory))
 
-    def change_dir(self, i, o, cls):
+    def change_dir(self, i, o, cls): pass
         ### change directory
 
     def put_in_file(self, i, o, cls): pass
