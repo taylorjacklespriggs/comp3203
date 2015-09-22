@@ -7,7 +7,10 @@ import * from calls
 class ServerController:
     def __init__(self):
       self.server = self._open_server()
-      self._commands = {'ls': self.list_files}
+      self._commands = {'ls': self.list_files,
+                        'cd': self.change_dir,
+                        'put': self.put_in_file,
+                        'get': self.get_file}
 
     def _open_server(self):
         return server.Server(int(open('port').read().strip('\n')), self.handle_client)
@@ -17,7 +20,16 @@ class ServerController:
 
     def list_files(self, i, o, cls):
         ### get the path from  i
+        path = i.read_string()
+        
         o.write_string(ls(cls.directory))
+
+    def change_dir(self, i, o, cls):
+        ### change directory
+
+    def put_in_file(self, i, o, cls):
+
+    def get_file(self, i, o cls):
 
     def handle_client(self, cl):
         cls = clientsession.ClientSession()
@@ -26,7 +38,9 @@ class ServerController:
             message = i.read_string()
             print(message)
             try:
-                self._commands[message](i, o, cls)
+                print(message)
+                o_write_string("Test worked!")
+                ### self._commands[message](i, o, cls)
             except:
                 print("Server received an invalid command")
                 o.write_string("inval")
