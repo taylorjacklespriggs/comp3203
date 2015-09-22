@@ -7,10 +7,10 @@ from calls import *
 class ServerController:
     def __init__(self):
       self.server = self._open_server()
-      self._commands = {'ls': self.list_files,
-                        'cd': self.change_dir,
-                        'put': self.put_in_file,
-                        'get': self.get_file}
+      self._commands = {b'ls': self.list_files,
+                        b'cd': self.change_dir,
+                        b'put': self.put_in_file,
+                        b'get': self.get_file}
 
     def _open_server(self):
         return server.Server(int(open('port').read().strip('\n')), self.handle_client)
@@ -20,6 +20,7 @@ class ServerController:
 
     def list_files(self, i, o, clis):
         ### get the path from  i
+        o.write_string("SUCCESS!")
         path = i.read_string()
         o.write_string(ls(clis.directory))
 
