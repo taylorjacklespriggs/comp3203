@@ -22,6 +22,8 @@ class ClientUI:
             self.ls(command[1])
         if command[0] == "cd":
             self.cd(command[1])
+        if command[0] == "put":
+            self.put(command[1], command[2])
         if command[0] == "q":
             return 1;
 
@@ -29,19 +31,37 @@ class ClientUI:
         ''' displays command help to the user for using the client '''
         print("Commands:\n\th - displays the command help\n\t" +
                 "q -  stops the client\n\t" +
-                "ls <directory> - lists everything in <directory>\n\t")
+                "ls <directory> - lists everything in <directory>\n\t" +
+                "cd <directory> - changes the current directory to <directory>\n\t" +
+                "put <src> <dest> - put the src file from the client to the dest file on the server\n\t")
 
     def ls(self, directory):
         ''' asks the controller to return a list of everything in
             the current directory on the server'''
-        directorylist = self.controller.ls(directory)
-        print(directorylist)
+        try:
+            directorylist = self.controller.ls(directory)
+            print(directorylist)
+        except DirectoryError:
+            print("Directory does not exist on the server...")
 
     def cd(self, directory):
         ''' asks the controller to move the user to another directory on the
             server '''
-        currentdirectory = self.controller.cd(directory)
-        print("Current directory: " + currentdirectory)
+        try:
+            currentdirectory = self.controller.cd(directory)
+            print("Current directory: " + currentdirectory)
+        except DirectoryError:
+            print("Directory does not exist on the server...")
+
+    def put(self, srcfile, destfile):
+        ''' sends the source filename and destination filename to the
+            controller for transferring a file from the client to the server '''
+        try:
+            self.controller.put(srcfile, destfile)
+        except PutServerError:
+            print("Could not write to server...")
+        except PutClientError:
+            print("Could not find file on client...")
 
 if __name__ == "__main__":
     client = ClientUI()
