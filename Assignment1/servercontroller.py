@@ -33,12 +33,12 @@ class ServerController:
 
     def handle_client(self, cl):
         clis = clientsession.ClientSession(cd("."))
+        print("client created")
         i, o = cl.get_buffers()
         while True:
             message = i.read_string()
             print(message)
             try:
-                print(message)
                 o_write_string("Test worked!")
                 ### self._commands[message](i, o, clis)
             except:
