@@ -20,7 +20,10 @@ class Controller:
             client_view.start()
     def ls(directory):
         print("ls command received: {1}".format(directory))
+        return "LS RETURN VALUE"
     def cd(directory):
         print("cd command received: {1}".format(directory))
+        return "CD RETURN VALUE"
     def put(srcfile, dstfile):
         print("put command received: {1}, {2}".format(srcfile, dstfile))
+        return "PUT  RETURN VALUE"
