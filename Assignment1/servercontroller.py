@@ -32,7 +32,7 @@ class ServerController:
     def get_file(self, i, o, clis): pass
 
     def handle_client(self, cl):
-        clis = clientsession.ClientSession()
+        clis = clientsession.ClientSession(cd("."))
         i, o = cl.get_buffers()
         while True:
             message = i.read_string()
