@@ -1,0 +1,13 @@
+CASE list files
+    CASE user inputs 'ls'
+        'ls' gets sent to server with '.' as argument
+        server replies with 'okay' and output of 'ls'
+    CASE user inputs 'ls' with valid path
+        'ls' gets sent to server with path as argument
+        server replies with 'okay' and output of 'ls'
+    CASE user inputs 'ls' with invalid path
+        'ls' gets sent to server with path as argument
+        server replies with 'inval' and description of problem
+    CASE user inputs 'ls' with too many arguments
+        user receives error message
+
