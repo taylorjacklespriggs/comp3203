@@ -27,9 +27,9 @@ class ServerController:
     def change_dir(self, i, o, cls):
         ### change directory
 
-    def put_in_file(self, i, o, cls):
+    def put_in_file(self, i, o, cls): pass
 
-    def get_file(self, i, o cls):
+    def get_file(self, i, o cls): pass
 
     def handle_client(self, cl):
         cls = clientsession.ClientSession()
