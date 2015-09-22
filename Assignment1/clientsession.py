@@ -4,7 +4,7 @@ class ClientSession(object):
                 self.current_directory = directory
                 
         def __str__(self):
-                return "Current directory is %s" % (self.directory)
+                return "Current directory is %s" % (self.current_directory)
         
         def change_directory(self, newDirectory):
                 self.current_directory = newDirectory

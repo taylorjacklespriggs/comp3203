@@ -22,7 +22,7 @@ class ServerController:
         ### get the path from  i
         o.write_string("SUCCESS!")
         path = i.read_string()
-        o.write_string(ls(clis.directory))
+        o.write_string(ls(clis.current_directory))
 
     def change_dir(self, i, o, clis): pass
         ### change directory
@@ -38,8 +38,10 @@ class ServerController:
         while True:
             message = i.read_string()
             try:
+                print(message)
                 self._commands[message](i, o, clis)
-            except:
+            except Exception as e:
+                print(e)
                 print("Server received an invalid command")
                 o.write_string("inval")
                 o.write_string("There was an invalid command: %s"%message)
