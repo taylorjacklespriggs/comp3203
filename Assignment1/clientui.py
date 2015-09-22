@@ -19,10 +19,13 @@ class ClientUI:
         ''' redirects the interface to call the correct function based on
             user input
             Returns 1 when the user wants to close the client connection'''
-        if command[0] == "q":
-            return 1;
+        try:
+            if command[0] == "q":
+                return 1;
 
-        self.commands[command[0]](command[1:])
+            self.commands[command[0]](command[1:])
+        except IndexError:
+            print("Please enter a command")
 
     def showhelp(self, args):
         ''' displays command help to the user for using the client '''
@@ -38,9 +41,9 @@ class ClientUI:
             the current directory on the server'''
         try:
             if len(args):
-                directorylist = self.controller.ls(args[0])
+                directorylist = self.controller.ls(args)
             else:
-                directorylist = self.controller.ls()
+                directorylist = self.controller.ls(".")
             print(directorylist)
         except DirectoryError:
             print("Directory does not exist on the server...")
@@ -53,34 +56,28 @@ class ClientUI:
             print("Current directory: " + currentdirectory)
         except DirectoryError:
             print("Directory does not exist on the server...")
-        except IndexError:
-            print("Please include the directory you wish to move to...")
 
     def put(self, args):
         ''' sends the source filename and destination filename to the
             controller for transferring a file from the client to the server '''
         try:
-            self.controller.put(args[0], args[1])
+            self.controller.put(args)
             print("transfer successful!")
         except PutServerError:
             print("Could not write to server...")
         except PutClientError:
             print("Could not find file on client...")
-        except IndexError:
-            print("Make sure you include both a source and destination file...")
 
     def get(self, args):
         ''' sends the source filename and destination filename to the controller
             for transferring a file from the server to the client '''
         try:
-            self.controller.get(args[0], args[1])
+            self.controller.get(args)
             print("transfer successful!")
         except GetServerError:
             print("Could not find file on server...")
         except GetClientError:
             print("Could not write file to client...")
-        except IndexError:
-            print("Make sure you include both a source and destination file...")
 
 if __name__ == "__main__":
     client = ClientUI()
