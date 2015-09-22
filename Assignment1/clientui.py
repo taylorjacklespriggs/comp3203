@@ -1,4 +1,4 @@
-import UIException
+from UIException import *
 
 class ClientUI:
     def __init__(self, controller):
