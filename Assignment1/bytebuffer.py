@@ -46,6 +46,18 @@ class ByteBuffer:
         self._add_to_buffer(string)
     def write_bytes(self, bts):
         self._add_to_buffer(bts)
+    def write_file(self, f):
+        '''
+        takes in an open file for writing
+        '''
+        f.seek(0, 2)
+        flen = f.tell()
+        self.write_string(str(flen))
+        f.seek(0)
+        while flen:
+            r = f.read(1024)
+            flen -= len(r)
+            self.write_string(r)
     def read_char(self):
         return self._flush(1)
     def read_int(self):
@@ -55,6 +67,15 @@ class ByteBuffer:
         return str(self._flush(l), 'utf-8')
     def read_bytes(self, num):
         return self._flush(num)
+    def read_file(self, f):
+        '''
+        takes in an open file ready for writing
+        '''
+        sz = int(self.read_string())
+        while sz:
+            r = self.read_string()
+            f.write(r)
+            sz -= len(r)
     def flush(self):
         self._has_vals.acquire()
         self._counter.acquire()
