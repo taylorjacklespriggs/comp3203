@@ -33,8 +33,10 @@ class Server:
         the constructor
         '''
         self._sock.listen(10)
+        print("Server listening for new connections")
         try:
             while True:
+                print("Server accepting a new connection")
                 cl, addr = self._sock.accept()
                 print("Incoming connection from %r on port %r"%addr)
                 cl = ServerThread(self, cl)
