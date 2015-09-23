@@ -1,13 +1,29 @@
 
 from subprocess import *
+from os import path
+
+class CallException(Exception): pass
+
+def _catch(func):
+    try:
+        return func()
+    except Exception as e:
+        raise CallException(e.args[0])
 
 def ls(directory):
     '''Calls ls -l $directory'''
-    return check_output(('ls', '-l', directory)).decode("utf-8")
+    return _catch(lambda: check_output(('ls', '-l', directory)).decode("utf-8"))
+
+def absolute_path(path):
+    '''returns the absolute path of the argument'''
+    return _catch(lambda: check_output(('readlink', '-f', path)).decode("utf-8")[:-1])
 
 def cd(directory):
     '''Checks if $directory is valid and returns absolute path'''
-    return check_output(('readlink', '-f', directory)).decode("utf-8")[:-1]
+    directory = absolute_path(directory)
+    if path.isdir(directory):
+        return directory
+    raise CallException('%s is not a directory'%directory)
 
 def put(filename, content):
     '''Puts $content into $filename'''
@@ -21,4 +37,5 @@ def get(filename):
     content = f.read()
     f.close()
     return content
+
 

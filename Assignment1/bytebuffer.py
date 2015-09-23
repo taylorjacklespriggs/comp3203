@@ -6,17 +6,15 @@ class ByteBuffer:
         self._vals = []
         self._read_index = 0
         self._counter = Semaphore(0)
-        self._has_vals = Semaphore(0)
     def _add_to_buffer(self, bts):
         l = len(self._vals)
         self._vals.append(bts)
         self._counter.release()
-        if l == 0:
-            self._has_vals.release()
     def _flush(self, num):
         vals = []
         while num > 0:
             self._counter.acquire()
+            assert len(self._vals), 'Buffer closed'
             l = len(self._vals[0])
             dl = l - self._read_index
             if dl <= num: # pop the value from the queue
@@ -30,8 +28,6 @@ class ByteBuffer:
                 self._read_index = end
                 self._counter.release()
                 num = 0
-        if len(self._vals) == 0:
-            self._has_vals.acquire()
         return b''.join(vals)
     def write_char(self, char):
         try:    char = char.encode('ascii')
@@ -80,15 +76,14 @@ class ByteBuffer:
             f.write(r)
             sz -= len(n)
     def flush(self):
-        self._has_vals.acquire()
         self._counter.acquire()
         bts = b''.join(self._vals)
         self._vals = []
         self._read_index = 0
-        self._counter.release()
+        self._counter = Semaphore(0)
         return bts
     def close(self):
-        self._has_vals.release()
+        self._counter.release()
 
 if __name__ == '__main__':
     bb = ByteBuffer()

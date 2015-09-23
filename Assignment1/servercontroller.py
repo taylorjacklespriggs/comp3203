@@ -68,16 +68,22 @@ class ServerController:
         i, o = cl.get_buffers()
         o.write_string('success')
         o.write_string(clis.current_directory)
-        while True:
-            message = i.read_string()
-            try:
-                print(message)
-                self._commands[message](i, o, clis)
-            except Exception as e:
-                print(e)
-                print("Server received an invalid command")
-                o.write_string("inval")
-                o.write_string("There was an invalid command: %s"%message)
+        try:
+            while True:
+                message = i.read_string()
+                try:
+                    print(message)
+                    self._commands[message](i, o, clis)
+                except KeyError as e:
+                    print("Server received an invalid command")
+                    o.write_string("inval")
+                    o.write_string("There was an invalid command: %s"%message)
+                except CallException as e:
+                    print(e.args[0])
+                    o.write_string("inval")
+                    o.write_string(e.args[0])
+        except Exception as e:
+            print(e.args[0])
 
 if __name__ == '__main__':
     import server

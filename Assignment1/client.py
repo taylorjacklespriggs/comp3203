@@ -25,7 +25,9 @@ class Client:
         '''
         try:
             while self._open:
-                self._sock.send(self._out_buffer.flush())
+                bts = self._out_buffer.flush()
+                if len(bts):
+                    self._sock.send(bts)
         except OSError: pass
     def get_buffers(self):
         return self._in_buffer, self._out_buffer
@@ -34,6 +36,10 @@ class Client:
         self._sock.close()
         self._in_buffer.close()
         self._out_buffer.close()
+        print('waiting for threads to join')
+        self._read_thread.join()
+        print('read thread joined')
+        self._write_thread.join()
 
 if __name__ == '__main__':
     from socket import *

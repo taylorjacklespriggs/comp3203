@@ -42,6 +42,8 @@ class Server:
                 cl = ServerThread(self, cl)
                 self._clients.add(cl)
                 Thread(target=cl.start).start()
+        except KeyboardInterrupt:
+            print('Keyboard interrupt')
         finally:
             for cl in self._clients:
                 cl.close()
