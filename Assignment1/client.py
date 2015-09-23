@@ -15,14 +15,18 @@ class Client:
         '''
         reads constantly into the buffer
         '''
-        while self._open:
-            self._in_buffer.write_bytes(self._sock.recv(4096))
+        try:
+            while self._open:
+                self._in_buffer.write_bytes(self._sock.recv(4096))
+        except OSError: pass
     def _send(self):
         '''
         writes the out buffer to the socket
         '''
-        while self._open:
-            self._sock.send(self._out_buffer.flush())
+        try:
+            while self._open:
+                self._sock.send(self._out_buffer.flush())
+        except OSError: pass
     def get_buffers(self):
         return self._in_buffer, self._out_buffer
     def close(self):
