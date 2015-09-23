@@ -56,15 +56,17 @@ class ByteBuffer:
         f.seek(0)
         while flen:
             r = f.read(1024)
-            flen -= len(r)
-            self.write_string(r)
+            l = len(r)
+            flen -= l
+            self.write_int(l)
+            self.write_bytes(r)
     def read_char(self):
         return self._flush(1)
     def read_int(self):
         return struct.unpack(">I", self._flush(4))[0]
     def read_string(self):
         l = self.read_int()
-        return self._flush(l)
+        return str(self._flush(l), 'utf-8')
     def read_bytes(self, num):
         return self._flush(num)
     def read_file(self, f):
@@ -73,9 +75,10 @@ class ByteBuffer:
         '''
         sz = int(self.read_string())
         while sz:
-            r = self.read_string()
+            n = self.read_int()
+            r = self.read_bytes(n)
             f.write(r)
-            sz -= len(r)
+            sz -= len(n)
     def flush(self):
         self._has_vals.acquire()
         self._counter.acquire()
