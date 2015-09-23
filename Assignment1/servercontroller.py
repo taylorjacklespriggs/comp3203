@@ -20,7 +20,7 @@ class ServerController:
 
     def _abs_dir(self, path, clis):
         if not path.startswith('/'):
-            path = '/'.join((clis.current_directory, clis))
+            path = '/'.join((clis.current_directory, path))
         return path
 
     def list_files(self, i, o, clis):
