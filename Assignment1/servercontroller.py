@@ -58,7 +58,23 @@ class ServerController:
         o.write_string(result)
         o.write_string(output)
 
-    def put_in_file(self, i, o, clis): pass
+    def put_in_file(self, i, o, clis):
+        num = i.read_int()
+        print(num)
+
+        filename = i.read_string()
+        print(filename)
+
+        path = '{d}/{f}'.format(d=clis.current_directory, f=filename)
+        print(path)
+
+        incoming_file = open(path, "w", encoding="ascii")
+
+        o.write_string('ready')
+        i.read_file(incoming_file)
+        o.write_string('success')
+
+        incoming_file.close()
 
     def get_file(self, i, o, clis): pass
 
