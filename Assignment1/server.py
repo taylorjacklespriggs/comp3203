@@ -24,7 +24,7 @@ class Server:
     def get_method(self):
         return self._method
     def remove_client(self, clnt):
-        self._client.remove(clnt)
+        self._clients.remove(clnt)
     def start(self):
         '''
         sets up the socket to listen for incomming

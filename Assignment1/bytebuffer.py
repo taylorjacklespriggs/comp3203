@@ -74,7 +74,7 @@ class ByteBuffer:
             n = self.read_int()
             r = self.read_bytes(n)
             f.write(r)
-            sz -= len(n)
+            sz -= len(r)
     def flush(self):
         self._counter.acquire()
         bts = b''.join(self._vals)
