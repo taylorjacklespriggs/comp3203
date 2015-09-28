@@ -68,7 +68,7 @@ class ServerController:
         path = '{d}/{f}'.format(d=clis.current_directory, f=filename)
         print(path)
 
-        incoming_file = open(path, "w", encoding="ascii")
+        incoming_file = open(path, "wb+")
 
         o.write_string('ready')
         i.read_file(incoming_file)

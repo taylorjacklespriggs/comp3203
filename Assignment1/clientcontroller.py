@@ -66,7 +66,7 @@ class ClientController:
         src_file = args[0]
         print(src_file)
 
-        send_file = open(src_file, "r", encoding="ascii")
+        send_file = open(src_file, "rb")
 
         i, o = self.client.get_buffers()
         o.write_string("put")
