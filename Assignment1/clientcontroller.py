@@ -1,5 +1,5 @@
 from socket import *
-#import pprint
+import pprint
 from client import *
 import clientui
 #import clientsession
@@ -62,6 +62,22 @@ class ClientController:
             #TODO: Make part of Client UI or throw exception
             print("Invalid parameters for put.")
             return
+
+        src_file = args[0]
+        print(src_file)
+
+        send_file = open(src_file, "r", encoding="ascii")
+
+        i, o = self.client.get_buffers()
+        o.write_string("put")
+        o.write_int(1)
+        o.write_string(src_file.split('/')[-1])
+
+        res = i.read_string()
+        print(res)
+
+        o.write_file(send_file)
+        send_file.close()
 
     def get(self, args):
         print("GET test")
