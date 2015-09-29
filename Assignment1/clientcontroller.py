@@ -108,8 +108,12 @@ class ClientController:
         o.write_string(src_file)
 
         # Open temp file
-        dst_file = args[1]
-        incoming_file = open('{p}.tmp'.format(p=dst_file), "wb+")
+        filename = src_file('/')[-1]
+        if len(args)==1 or args[1]=='.':
+            dst_file = filename
+        else:
+            dst_file = args[1]
+        incoming_file = open('{p}/{f}.tmp'.format(p=dst_file,f=filename), "wb+")
         o.write_string('ready')
         print('Printint in {d}'.format(d=dst_file))
 
