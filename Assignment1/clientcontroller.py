@@ -96,5 +96,22 @@ class ClientController:
             print("Invalid parameters for get.")
             return
 
-        srcfile = args[0]
-        dstfile = args[1]
+        # Send 'get' and number of arguments
+        i, o = self.client.get_buffers()
+        o.write_string("get")
+        o.write_int(len(args))
+
+        # Send source of file
+        src_file = args[0]
+        print(src_file)
+        o.write_string(src_file)
+
+        # Open temp file
+        dst_file = args[1]
+        incoming_file = open('{p}.tmp'.format(p=dst_file), "wb+")
+        o.write_string('ready')
+
+        # Receive incoming file
+        i.read_file(incoming_file)
+        incoming_file.close()
+        os.rename('{p}.tmp'.format(p=dst_file), dst_file)
