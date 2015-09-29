@@ -112,6 +112,6 @@ class ClientController:
         o.write_string('ready')
 
         # Receive incoming file
-        i.read_file(incoming_file)
-        incoming_file.close()
-        os.rename('{p}.tmp'.format(p=dst_file), dst_file)
+#        i.read_file(incoming_file)
+#        incoming_file.close()
+#        os.rename('{p}.tmp'.format(p=dst_file), dst_file)

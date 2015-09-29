@@ -90,14 +90,16 @@ class ServerController:
 
         # Get source path/filename
         src_file = i.read_string()
-        print(src_file)
+        path = '{d}/{f}'.format(d=clis.current_directory, f=src_file)
+        print(path)
 
         msg = i.read_string()
         if msg == 'ready':
-            send_file = open(src_file, "rb")
-            o.write_file(send_file)
-            send_file.close()
-            o.send_string('success')
+             print(msg)
+#            send_file = open(src_file, "rb")
+#            o.write_file(send_file)
+#            send_file.close()
+#            o.send_string('success')
 
     def handle_client(self, cl):
         clis = clientsession.ClientSession(cd("."))
