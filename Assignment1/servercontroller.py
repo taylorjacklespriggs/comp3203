@@ -99,7 +99,7 @@ class ServerController:
             send_file = open(src_file, "rb")
             o.write_file(send_file)
             send_file.close()
-            o.send_string('success')
+            o.write_string('success')
 
     def handle_client(self, cl):
         clis = clientsession.ClientSession(cd("."))

@@ -108,11 +108,12 @@ class ClientController:
         o.write_string(src_file)
 
         # Open temp file
-        filename = src_file('/')[-1]
+        filename = src_file.split('/')[-1]
         if len(args)==1 or args[1]=='.':
             dst_file = filename
         else:
             dst_file = args[1]
+        print(dst_file)
         incoming_file = open('{p}.tmp'.format(p=dst_file), "wb+")
         o.write_string('ready')
         print('Printint in {d}'.format(d=dst_file))
@@ -121,3 +122,4 @@ class ClientController:
         i.read_file(incoming_file)
         incoming_file.close()
         os.rename('{p}.tmp'.format(p=dst_file), dst_file)
+
