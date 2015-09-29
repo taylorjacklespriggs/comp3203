@@ -59,25 +59,34 @@ class ClientController:
         print("PUT test")
         pprint.pprint(args)
         if len(args) > 2 or len(args) < 1:
-            #TODO: Make part of Client UI or throw exception
-            print("Invalid parameters for put.")
+            self._ui.display_error("Invalid parameters for put.")
             return
 
+        # Get local file name and open the file
         src_file = args[0]
         print(src_file)
-
         send_file = open(src_file, "rb")
 
+        # Send 'put' and number of arguments
         i, o = self.client.get_buffers()
         o.write_string("put")
-        o.write_int(1)
-        o.write_string(src_file.split('/')[-1])
+        o.write_int(len(args))
 
+        # Determine destination file name and send the file name
+        dst_filename = src_file.split('/')[-1] if len(args) < 2 else args[1]
+        o.write_string(dst_filename)
+
+        # Wait for 'ready'
         res = i.read_string()
         print(res)
 
+        # Send the file, close it
         o.write_file(send_file)
         send_file.close()
+
+        # Wait for reply
+        res = i.read_string()
+        print(res)
 
     def get(self, args):
         print("GET test")

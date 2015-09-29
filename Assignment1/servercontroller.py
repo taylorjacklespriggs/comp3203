@@ -1,4 +1,5 @@
 from socket import *
+import os
 
 import server
 import clientsession
@@ -59,22 +60,28 @@ class ServerController:
         o.write_string(output)
 
     def put_in_file(self, i, o, clis):
+        # Get arguments
         num = i.read_int()
         print(num)
 
+        # Get destination file name and determine path
         filename = i.read_string()
         print(filename)
 
         path = '{d}/{f}'.format(d=clis.current_directory, f=filename)
         print(path)
 
-        incoming_file = open(path, "wb+")
+        # Open temporary file
+        incoming_file = open('{p}.tmp'.format(p=path), "wb+")
 
+        # Indicate readiness, receive file and close, rename file
         o.write_string('ready')
         i.read_file(incoming_file)
+        incoming_file.close()
+        os.rename('{p}.tmp'.format(p=path), path)
+
         o.write_string('success')
 
-        incoming_file.close()
 
     def get_file(self, i, o, clis): pass
 
