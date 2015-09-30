@@ -72,7 +72,12 @@ class ServerController:
         print(path)
 
         # Open temporary file
-        incoming_file = open('{p}.tmp'.format(p=path), "wb+")
+        try:
+            incoming_file = open('{p}.tmp'.format(p=path), "wb+")
+        except Exception as err:
+            o.write_string('inval')
+            o.write_string('REMOTE SERVER: {e}'.format(e=str(err)))
+            return
 
         # Indicate readiness, receive file and close, rename file
         o.write_string('ready')

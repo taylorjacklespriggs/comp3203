@@ -7,15 +7,11 @@ import clientui
 
 class ClientController:
     def __init__(self, ip_addr):
-        #self.session = clientsession.ClientSession("./gibberish")
         self.server_addr = ip_addr
         self.client = None
         self._ui = None
 
     def start(self):
-        #print(self.session)
-
-        #print(self.server_addr)
         s = socket(AF_INET, SOCK_STREAM)
         s.connect((self.server_addr, int(open('port').read().strip('\n'))))
         self.client = Client(s)
@@ -64,9 +60,13 @@ class ClientController:
             return
 
         # Get local file name and open the file
-        src_file = args[0]
-        print(src_file)
-        send_file = open(src_file, "rb")
+        try:
+            src_file = args[0]
+            print(src_file)
+            send_file = open(src_file, "rb")
+        except Exception as err: 
+            self._ui.display_error(str(err))
+            return
 
         # Send 'put' and number of arguments
         i, o = self.client.get_buffers()
@@ -80,6 +80,10 @@ class ClientController:
         # Wait for 'ready'
         res = i.read_string()
         print(res)
+        if res == 'inval':
+            err = i.read_string()
+            self._ui.display(err)
+            return
 
         # Send the file, close it
         o.write_file(send_file)
