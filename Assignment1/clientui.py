@@ -47,12 +47,15 @@ class ClientUI:
 
     def start(self):
         ''' starts the UI. Should be the main entry point '''
-        while (1):
-            self.display("Command(type h for list of commands): ")
-            command = self.get_input()
-            result = self.parsecommand(command)
-            if result == 1:
-                break
+        try:
+            while (1):
+                self.display("Command(type h for list of commands): ")
+                command = self.get_input()
+                result = self.parsecommand(command)
+                if result == 1:
+                    break
+        except KeyboardInterrupt:
+            pass
 
     def change_dir(self, new_dir):
         self._dir = new_dir

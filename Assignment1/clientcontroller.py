@@ -64,7 +64,7 @@ class ClientController:
             src_file = args[0]
             print(src_file)
             send_file = open(src_file, "rb")
-        except Exception as err: 
+        except Exception as err:
             self._ui.display_error(str(err))
             return
 

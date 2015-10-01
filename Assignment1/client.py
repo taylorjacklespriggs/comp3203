@@ -1,9 +1,14 @@
 from threading import Thread
+from _thread import interrupt_main, exit
 from bytebuffer import ByteBuffer
+from os import kill, getpid
+from signal import SIGINT
+from socket import timeout, SHUT_WR
 
 class Client:
     def __init__(self, sock):
         self._sock = sock
+        self._sock.settimeout(1)
         self._in_buffer = ByteBuffer()
         self._out_buffer = ByteBuffer()
         self._read_thread = Thread(target=self._recv)
@@ -17,8 +22,16 @@ class Client:
         '''
         try:
             while self._open:
-                self._in_buffer.write_bytes(self._sock.recv(4096))
-        except OSError: pass
+                try:
+                    bts = self._sock.recv(4096)
+                    if not len(bts):
+                        raise OSError()
+                    self._in_buffer.write_bytes(bts)
+                except timeout:
+                    pass
+        except OSError:
+            print("Socket closed")
+            self.close()
     def _send(self):
         '''
         writes the out buffer to the socket
@@ -28,18 +41,28 @@ class Client:
                 bts = self._out_buffer.flush()
                 if len(bts):
                     self._sock.send(bts)
-        except OSError: pass
+        except OSError:
+            self._close()
     def get_buffers(self):
         return self._in_buffer, self._out_buffer
     def close(self):
-        self._open = False
-        self._sock.close()
-        self._in_buffer.close()
-        self._out_buffer.close()
-        print('waiting for threads to join')
-        self._read_thread.join()
-        print('read thread joined')
-        self._write_thread.join()
+        if self._open:
+            self._open = False
+            self._out_buffer.close()
+            try:
+                self._sock.shutdown(SHUT_WR)
+                self._sock.close()
+            except OSError:
+                pass
+            print("Closing input buffer")
+            self._in_buffer.close()
+            print("Closed input buffer")
+            try:
+                self._read_thread.join()
+                self._write_thread.join()
+            except RuntimeError:
+                print("Interrupting main thread")
+                kill(getpid(), SIGINT)
 
 if __name__ == '__main__':
     from socket import *

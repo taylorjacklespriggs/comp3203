@@ -6,10 +6,8 @@ class Controller:
     def __init__(self):
         '''do something here'''
     def start(self):
-        print("Stuff")
         view = ui.UI()
         selection = view.start()
-        print(selection)
         if selection == "server":
             print("Server will now start...")
             servercontrl = servercontroller.ServerController()

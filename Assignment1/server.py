@@ -45,7 +45,8 @@ class Server:
         except KeyboardInterrupt:
             print('Keyboard interrupt')
         finally:
-            for cl in self._clients:
+            clients = list(self._clients)
+            for cl in clients:
                 cl.close()
             self._sock.close()
 

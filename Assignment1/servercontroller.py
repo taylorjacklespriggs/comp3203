@@ -1,4 +1,4 @@
-from socket import *
+#from socket import *
 import os
 
 import server
@@ -88,7 +88,7 @@ class ServerController:
         o.write_string('success')
 
 
-    def get_file(self, i, o, clis): 
+    def get_file(self, i, o, clis):
         # Get arguments
         num = i.read_int()
         print(num)
@@ -108,7 +108,6 @@ class ServerController:
 
     def handle_client(self, cl):
         clis = clientsession.ClientSession(cd("."))
-        print("client created")
         i, o = cl.get_buffers()
         o.write_string('success')
         o.write_string(clis.current_directory)
@@ -116,7 +115,7 @@ class ServerController:
             while True:
                 message = i.read_string()
                 try:
-                    print(message)
+                    print("Server received command %s"%message)
                     self._commands[message](i, o, clis)
                 except KeyError as e:
                     print("Server received an invalid command")
