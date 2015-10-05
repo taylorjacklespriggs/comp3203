@@ -40,8 +40,9 @@ class Client:
         try:
             while self._open:
                 bts = self._out_buffer.flush()
-                if len(bts):
-                    self._sock.send(bts)
+                while len(bts):
+                    sent = self._sock.send(bts)
+                    bts = bts[sent:]
         except OSError:
             self._close()
     def get_buffers(self):
