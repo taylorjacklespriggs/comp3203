@@ -14,7 +14,7 @@ class ClientController:
     def start(self):
         s = socket(AF_INET, SOCK_STREAM)
         s.connect((self.server_addr, int(open('port').read().strip('\n'))))
-        self.client = Client(s)
+        self.client = Client(s, True)
         i, _ = self.client.get_buffers()
         res = i.read_string()
         output = i.read_string()

@@ -6,7 +6,8 @@ from signal import SIGINT
 from socket import timeout, SHUT_WR
 
 class Client:
-    def __init__(self, sock):
+    def __init__(self, sock, main_interrupt=False):
+        self._inter_main = main_interrupt
         self._sock = sock
         self._sock.settimeout(1)
         self._in_buffer = ByteBuffer()
@@ -61,8 +62,9 @@ class Client:
                 self._read_thread.join()
                 self._write_thread.join()
             except RuntimeError:
-                print("Interrupting main thread")
-                kill(getpid(), SIGINT)
+                if self._inter_main:
+                    print("Interrupting main thread")
+                    kill(getpid(), SIGINT)
 
 if __name__ == '__main__':
     from socket import *
