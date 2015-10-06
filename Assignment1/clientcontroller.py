@@ -1,9 +1,7 @@
 from socket import *
 import os
-import pprint
 from client import *
 import clientui
-#import clientsession
 
 class ClientController:
     def __init__(self, ip_addr):
@@ -25,7 +23,6 @@ class ClientController:
         self.client.close()
 
     def ls(self, args):
-        #pprint.pprint(args)
         assert len(args) <= 1, \
             "Invalid parameters for ls."
 
@@ -38,7 +35,6 @@ class ClientController:
         self._ui.display(output)
 
     def cd(self, args):
-        #pprint.pprint(args)
         assert len(args) <= 1, \
             "Invalid parameters for cd."
 
@@ -53,8 +49,6 @@ class ClientController:
         self._ui.change_dir(output)
 
     def put(self, args):
-        print("PUT test")
-        pprint.pprint(args)
         if len(args) > 2 or len(args) < 1:
             self._ui.display_error("Invalid parameters for put.")
             return
@@ -62,9 +56,8 @@ class ClientController:
         # Get local file name and open the file
         try:
             src_file = args[0]
-            print(src_file)
             send_file = open(src_file, "rb")
-        except Exception as err:
+        except OSError as err:
             self._ui.display_error(str(err))
             return
 
@@ -79,7 +72,6 @@ class ClientController:
 
         # Wait for 'ready'
         res = i.read_string()
-        print(res)
         if res == 'inval':
             err = i.read_string()
             self._ui.display(err)
@@ -91,25 +83,17 @@ class ClientController:
 
         # Wait for reply
         res = i.read_string()
-        print(res)
+        if res == 'failed':
+            err = i.read_string()
+            self._ui.display_error(str(err))
+
 
     def get(self, args):
-        print("GET test")
-        pprint.pprint(args)
         if len(args) > 2 or len(args) < 1:
-            #TODO: Make part of Client UI or throw exception
-            print("Invalid parameters for get.")
+            self._ui.display_error("Invalid parameters for get.")
             return
 
-        # Send 'get' and number of arguments
-        i, o = self.client.get_buffers()
-        o.write_string("get")
-        o.write_int(len(args))
-
-        # Send source of file
         src_file = args[0]
-        print(src_file)
-        o.write_string(src_file)
 
         # Open temp file
         filename = src_file.split('/')[-1]
@@ -117,13 +101,33 @@ class ClientController:
             dst_file = filename
         else:
             dst_file = args[1]
-        print(dst_file)
-        incoming_file = open('{p}.tmp'.format(p=dst_file), "wb+")
-        o.write_string('ready')
-        print('Printint in {d}'.format(d=dst_file))
+
+        # Send 'get' and number of arguments
+        i, o = self.client.get_buffers()
+        o.write_string("get")
+        o.write_int(len(args))
+
+        # Send source of file
+        o.write_string(src_file)
+
+        res = i.read_string()
+        if res == 'failed':
+            err = i.read_string()
+            self._ui.display_error(str(err))
+            return
+
+        try:
+            incoming_file = open('{p}.tmp'.format(p=dst_file), "wb+")
+            o.write_string('ready')
+        except OSError as err:
+            self._ui.display_error(str(err))
+            o.write_string('failed')
+            return
 
         # Receive incoming file
         i.read_file(incoming_file)
-        incoming_file.close()
-        os.rename('{p}.tmp'.format(p=dst_file), dst_file)
-
+        try:
+            incoming_file.close()
+            os.rename('{p}.tmp'.format(p=dst_file), dst_file)
+        except OSError as err:
+            self._ui_display_error(str(err))

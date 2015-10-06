@@ -62,19 +62,18 @@ class ServerController:
     def put_in_file(self, i, o, clis):
         # Get arguments
         num = i.read_int()
-        print(num)
 
         # Get destination file name and determine path
         filename = i.read_string()
-        print(filename)
 
         path = '{d}/{f}'.format(d=clis.current_directory, f=filename)
-        print(path)
 
         # Open temporary file
         try:
+            file_test = open(path, "a")
+            file_test.close()
             incoming_file = open('{p}.tmp'.format(p=path), "wb+")
-        except Exception as err:
+        except OSError as err:
             o.write_string('inval')
             o.write_string('REMOTE SERVER: {e}'.format(e=str(err)))
             return
@@ -82,29 +81,38 @@ class ServerController:
         # Indicate readiness, receive file and close, rename file
         o.write_string('ready')
         i.read_file(incoming_file)
-        incoming_file.close()
-        os.rename('{p}.tmp'.format(p=path), path)
 
-        o.write_string('success')
+        try:
+            incoming_file.close()
+            os.rename('{p}.tmp'.format(p=path), path)
+            o.write_string('success')
+        except OSError as err:
+            o.write_string('failed')
+            o.write_string(str(err))
+
 
 
     def get_file(self, i, o, clis):
         # Get arguments
         num = i.read_int()
-        print(num)
 
         # Get source path/filename
         src_file = i.read_string()
-        path = '{d}/{f}'.format(d=clis.current_directory, f=src_file)
-        print(path)
+
+        try:
+            test_file = open(src_file, "r")
+            test_file.close()
+            o.write_string('ready')
+        except OSError as err:
+            o.write_string('failed')
+            o.write_string(str(err))
+            return
 
         msg = i.read_string()
         if msg == 'ready':
-            print(msg)
             send_file = open(src_file, "rb")
             o.write_file(send_file)
             send_file.close()
-            o.write_string('success')
 
     def handle_client(self, cl):
         clis = clientsession.ClientSession(cd("."))
