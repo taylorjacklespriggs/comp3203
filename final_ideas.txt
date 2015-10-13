@@ -1,0 +1,35 @@
+Remote Jukebox
+Components:
+    Raspberry PI ~ $40
+    Wi-Fi USB dongle ~ $10
+    Bluetooth USB dongle ~ $5
+    Wired speakers ~ $15
+    Total ~ $70
+Efforts:
+    Server software
+        Network abstraction
+            Which device is allowed to stream
+            Which devices are on the queue
+            Pop device from queue when buffer is not full
+            Feed music to buffer
+        Music playback
+            Read from buffer
+            Output to speakers
+    Client software
+        Open UDP port for response
+        Request to start streaming
+        Wait for response
+        Start streaming
+        GUI and platform specific APIs
+
+Switch pathfinder
+Components:
+    None
+    Total $0
+Efforts:
+    Implement virtual switches and hosts
+    Dijkstras algorithm
+    GUI
+        Display switches and hosts
+        Show solution
+
