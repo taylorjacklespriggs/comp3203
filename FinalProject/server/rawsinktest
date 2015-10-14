@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]
+then
+    echo "Enter the audio file name" >&2
+    exit 1
+fi
+
+python -m audio.rawsinktest $1
+
+if [[ $? -ne 0 ]]
+then
+    echo "rawsinktest failed" >&2
+    rm -f output.{md,raw}
+    exit 1
+fi
+
+IFS=$'\n'
+info=($(cat output.md | awk '{ print $2 }'))
+./play_raw ${info[0]} ${info[1]} ${info[2]} output.raw
+
+rm -r output.{md,raw}
+

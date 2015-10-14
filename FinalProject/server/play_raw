@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ $# -ne 4 ]]
+then
+    echo "You must input the number of channels, sample width, sample rate, and filename" >&2
+    exit 1
+fi
+
+mplayer -rawaudio samplesize=$2:channels=$1:rate=$3 -demuxer rawaudio $4

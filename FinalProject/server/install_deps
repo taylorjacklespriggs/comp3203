@@ -1,0 +1,15 @@
+#!/bin/bash
+pip --version 2>&1 >/dev/null
+if [[ $? -ne 0 ]]
+then
+    echo "Please install pip"
+    exit 1
+fi
+
+pip install pyalsaaudio wave pydub
+if [[ $? -ne 0 ]]
+then
+    echo "Run this script as root"
+    exit 1
+fi
+
