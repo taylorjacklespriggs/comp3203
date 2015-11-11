@@ -1,0 +1,53 @@
+#!/bin/sh
+
+rate=44100
+buffer=64k
+width=2
+channels=1
+
+while getopts :r:b:w:c: opt
+do
+    case $opt in
+        r)
+            rate=$OPTARG
+            ;;
+        b)
+            buffer=$OPTARG
+            ;;
+        w)
+            width=$OPTARG
+            ;;
+        c)
+            channels=$OPTARG
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            exit 1
+            ;;
+    esac
+done
+
+case $width in
+    1)
+        fmt=s8
+        ;;
+    2)
+        fmt=s16le
+        ;;
+    3)
+        fmt=s24le
+        ;;
+    4)
+        fmt=s32le
+        ;;
+esac
+
+args="-ar $rate -ac $channels "
+args="$args -vb $buffer -bufsize $buffer -f $fmt"
+
+${AUDIO_PATH:?"Must have path to audio folder in AUDIO_PATH env var"}/ffmpeg -i - $args pipe:1
+

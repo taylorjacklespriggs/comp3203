@@ -1,15 +1,20 @@
 #!/bin/bash
-pip --version 2>&1 >/dev/null
-if [[ $? -ne 0 ]]
+
+arch_deps="ffmpeg python-pip"
+deb_deps="libav python-pip"
+
+if stat /usr/bin/pacman 2>&1 >/dev/null
 then
-    echo "Please install pip"
-    exit 1
+    sudo pacman -S $arch_deps || (echo "Failed to install arch deps!" >&2 ; exit 1)
+    ln -sf /usr/bin/ffmpeg audio/ffmpeg
+elif stat /usr/bin/apt-get 2>&1 >/dev/null
+then
+    sudo apt-get install $deb_deps || (echo "Failed to install debian deps!" >&2 ; exit 1)
+    ln -sf /usr/bin/avconv audio/ffmpeg
+else
+    echo "Did not find pacman or aptitude, please install pip and libav/ffmpeg manually"
+    echo "then link /path/to/ffmpeg or /path/to/avconv to ./ffmpeg"
 fi
 
-pip install pyalsaaudio wave pydub
-if [[ $? -ne 0 ]]
-then
-    echo "Run this script as root"
-    exit 1
-fi
+sudo pip install pyalsaaudio wave pydub
 
