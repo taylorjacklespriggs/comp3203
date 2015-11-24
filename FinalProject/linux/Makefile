@@ -1,23 +1,20 @@
-BINARY=comp3203
-SOURCES=MetadataController.cpp main.cpp
-LDFLAGS=-ltag -lz
-CFLAGS=-c -std=c++11
-CC=g++
+PROGRAM = DigiBoxClient
 
-OBJECTS=$(SOURCES:.cpp=.o)
-INCFLAGS=
-LIBFLAGS=
+ODIR = object/
 
-all: $(SOURCES) $(BINARY)
+all:	$(ODIR) $(PROGRAM)
 
-$(BINARY): $(OBJECTS)
-	$(CC) $(LIBFLAGS) $(OBJECTS) $(LDFLAGS) -o $@
-	
-.cpp.o:
-	$(CC) $(INCFLAGS) $(CFLAGS) -fPIC $< -o $@
-	
-distclean: clean
-	rm -f $(BINARY)
-	
-clean:
-	rm -f $(OBJECTS)
+$(ODIR):
+	mkdir -p $(ODIR)
+
+$(PROGRAM):	$(ODIR)main.o $(ODIR)DigiBoxClient.o $(ODIR)ClientSocket.o
+	g++ $(STD) -o $(PROGRAM) $(ODIR)main.o $(ODIR)DigiBoxClient.o $(ODIR)ClientSocket.o
+
+$(ODIR)main.o:	main.cc
+	g++ -c main.cc -o $(ODIR)main.o
+
+$(ODIR)DigiBoxClient.o:	DigiBoxClient.h DigiBoxClient.cc
+	g++ -c DigiBoxClient.cc -o $(ODIR)DigiBoxClient.o
+
+$(ODIR)ClientSocket.o: ClientSocket.h ClientSocket.cc
+	g++ -c ClientSocket.cc -o $(ODIR)ClientSocket.o
