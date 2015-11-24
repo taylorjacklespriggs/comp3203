@@ -12,10 +12,17 @@ extern "C"{
 class NetworkController
 {
 public:
-	NetworkController(std::string);
+	NetworkController();
+	~NetworkController();
 	void makeConnnection(std::string, int);
 	std::string sendMetadata(std::vector<std::string>);
-	~NetworkController();
+	int startQueueSocket();
+	void startMetaSocket();
+	
+	void sendInt(int);
+	void sendString(std::string);
+	int recvInt();
+	std::string recvString();
 private:
 	WSADATA wsaData;
 	SOCKET mySocket;
