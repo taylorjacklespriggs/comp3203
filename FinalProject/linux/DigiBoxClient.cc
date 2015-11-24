@@ -12,4 +12,11 @@ void DigiBoxClient::run() {
     ClientSocket sock(ipAddr, portNum);
 
     sock.makeConnection(ipAddr, portNum);
+
+    sock.sendInt(1);
+    sock.sendString("Name");
+    sock.sendString("The Duck Song");
+    std::string reply = sock.recvString();
+
+    std::cout << "Got this: " << reply << "\n";
 }
