@@ -28,8 +28,20 @@ void DigiBoxClient::run() {
 
     metaSock.sendInt(port);
 
-    udpServer.serverListen();
+    //int streamPort = udpServer.recvInt();
+    //std::cout << "GOT THIS: " << streamPort << "\n";
 
-    int get = udpServer.recvInt();
-    std::cout << "GOT THIS: " << get << "\n";
+    int streamPort;
+    char token[128];
+    udpServer.recvToken(&streamPort, token);
+    //std::string got = udpServer.recvString();
+    //std::cout << "GOT THIS: " << got << "\n";
+    
+    ClientSocket streamSock;
+    streamSock.makeConnection(ipAddr, streamPort);
+
+    streamSock.sendToken(token);
+
+    std::string streamReply = streamSock.recvString();
+    std::cout << "STREAM REPLY: " << streamReply << "\n";
 }

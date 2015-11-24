@@ -40,8 +40,8 @@ void ClientSocket::makeConnection(char *ipAddr, int portNum) {
 }
 
 int ClientSocket::serverBind() {
-    listenSocket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (listenSocket < 0) error("ERROR: Can't open socket");
+    mySocket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (mySocket < 0) error("ERROR: Can't open socket");
 
     int portNum = 5000;
     struct sockaddr_in servAddr;
@@ -50,21 +50,9 @@ int ClientSocket::serverBind() {
     servAddr.sin_addr.s_addr = INADDR_ANY;
     servAddr.sin_port = htons(portNum);
 
-    if (bind(listenSocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) error("ERROR: Couldn't bind\n");
+    if (bind(mySocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) error("ERROR: Couldn't bind\n");
 
     return portNum;
-}
-
-void ClientSocket::serverListen() {
-    // TODO: UDP SERVER
-
-    listen(mySocket, 0);
-
-    //socklen_t clientLen;
-    //struct sockaddr_in cliAddr;
-
-    //mySocket = accept(listenSocket, (struct sockaddr *) &cliAddr, &clientLen);
-    //if (mySocket < 0) error ("ERROR: Couldn't accept client");
 }
 
 std::string sendMetadata(std:: string thing) {
@@ -100,4 +88,20 @@ std::string ClientSocket::recvString() {
     buffer[len] = '\0';
     std::string retval(buffer);
     return retval;
+}
+
+void ClientSocket::recvToken(int *port, char *token) {
+    char buffer[132];
+    recv(mySocket, buffer, 132, 0);
+
+    *port = ntohl(*(int*) (void *)buffer);
+    std::cout << "PORT: " << *port << "\n";
+
+    memcpy(token, buffer+4, 128);
+
+    //std::cout << "GOT TOKEN: " << token << "\n";
+}
+
+void ClientSocket::sendToken(char *token) {
+    send(mySocket, token, 128, 0);
 }

@@ -22,6 +22,8 @@ class ClientSocket
         int sendString(char *msg);
         int recvInt();
         std::string recvString();
+        void recvToken(int* port, char *token);
+        void sendToken(char *token);
 
     private:
         int mySocket;
