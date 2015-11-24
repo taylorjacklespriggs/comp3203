@@ -15,13 +15,37 @@ NetworkController::~NetworkController()
 	WSACleanup();
 }
 
-void NetworkController::startMetaSocket()
+void NetworkController::startTCPSocket()
 {
 	if((mySocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SOCKET_ERROR)
 	{
 		// throw an error here.
 		std::cout << "Socket failed!\n";
 	}
+}
+
+int NetworkController::startQueueSocket()
+{
+	if((mySocket = socket(AF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
+	{
+		// throw an error here.
+		std::cout << "Socket failed!\n";
+	}
+	
+	int port = 8888;
+	struct sockaddr_in saServer;
+	
+	saServer.sin_family = AF_INET;
+	saServer.sin_addr.s_addr = INADDR_ANY;
+	saServer.sin_port = htons(port);
+	
+	if (bind(mySocket, (SOCKADDR *)&saServer, sizeof(saServer)) == SOCKET_ERROR)
+	{
+		// throw an exception here.
+		std::cout << "Bind failed!\n";
+	}
+	
+	return port;
 }
 
 void NetworkController::makeConnnection(std::string server, int port)
@@ -42,7 +66,7 @@ void NetworkController::makeConnnection(std::string server, int port)
 std::string NetworkController::sendMetadata(std::vector<std::string> metadata)
 {
 	std::string response = "";
-	int length = metadata.size()/2, recvbuflen = DEFAULT_BUFLEN, result, entries;
+	int length = metadata.size()/2;
 	
 	sendInt(length);
 	
@@ -51,15 +75,14 @@ std::string NetworkController::sendMetadata(std::vector<std::string> metadata)
 		sendString(metadata[i]);
 	}
 	
-  /*   if (shutdown(mySocket, SD_SEND) == SOCKET_ERROR) {
-		std::cout << "shutdown failed with error: " << WSAGetLastError() << "\n";
-        closesocket(mySocket);
-        WSACleanup();
-    } */
-	
 	response = recvString();
 	
 	return response;
+}
+
+void NetworkController::initiateStream(char *token)
+{
+	sendToken(token);
 }
 
 void NetworkController::sendInt(int msg)
@@ -88,6 +111,16 @@ void NetworkController::sendString(std::string msg)
 	}
 }
 
+void NetworkController::sendToken(char *token)
+{
+	int result = send(mySocket, token, 128, 0);
+	if( result == SOCKET_ERROR )
+	{
+		// throw an exception here.
+		std::cout << "send failed!\n" << WSAGetLastError();
+	}
+}
+
 int NetworkController::recvInt()
 {
 	int msg;
@@ -105,26 +138,10 @@ std::string NetworkController::recvString()
 	return msgStr;
 }
 
-int NetworkController::startQueueSocket()
+void NetworkController::recvToken(int *port, char *token)
 {
-	if((mySocket = socket(AF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
-	{
-		// throw an error here.
-		std::cout << "Socket failed!\n";
-	}
-	
-	int port = 8888;
-	struct sockaddr_in saServer;
-	
-	saServer.sin_family = AF_INET;
-	saServer.sin_addr.s_addr = INADDR_ANY;
-	saServer.sin_port = htons(port);
-	
-	if (bind(mySocket, (SOCKADDR *)&saServer, sizeof(saServer)) == SOCKET_ERROR)
-	{
-		// throw an exception here.
-		std::cout << "Bind failed!\n";
-	}
-	
-	return port;
+	char msg[132];
+	recv(mySocket, (char *)msg, 132, 0);
+	*port = ntohl(*(int*)(void*)msg);
+	memcpy(token, msg+4, 128);
 }

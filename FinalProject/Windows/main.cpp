@@ -5,6 +5,10 @@
 #include "metadata/MetadataController.h"
 #include "network/NetworkController.h"
 
+#define IP_LOCAL "192.168.56.101"
+#define IP_EXTERNAL "192.168.43.52"
+#define IP IP_LOCAL
+
 int main (int argc, char* argv[])
 {
 	if (argc > 1)
@@ -13,7 +17,7 @@ int main (int argc, char* argv[])
 		
 		MetadataController *metaCtrl = new MetadataController(filename);
 		NetworkController *metaClient = new NetworkController();
-		metaClient->startMetaSocket();
+		metaClient->startTCPSocket();
 		
 		std::unordered_map<std::string, std::string> *metadata = metaCtrl->getMetadata();
 		
@@ -29,7 +33,7 @@ int main (int argc, char* argv[])
 		metaDict.push_back(std::string("year"));
 		metaDict.push_back(metadata->at(std::string("year")));
 		
-		metaClient->makeConnnection("192.168.56.101", 3711);
+		metaClient->makeConnnection(IP, 3711);
 		std::string test = metaClient->sendMetadata(metaDict);
 		
 		std::cout << "response: " << test << "\n";
@@ -38,9 +42,21 @@ int main (int argc, char* argv[])
 		int serverPort = queueServer->startQueueSocket();
 		metaClient->sendInt(serverPort);
 		
-		int response = queueServer->recvInt();
+		int response;		
+		char token[128];
+		queueServer->recvToken(&response, token);
+		std::cout << "Server GOT: " << response << "\n" << "token : " << token;
 		
-		std::cout << "Server GOT: " << response;
+		delete queueServer;
+		
+		NetworkController *streamSocket = new NetworkController();
+		streamSocket->startTCPSocket();
+		streamSocket->makeConnnection(IP, 3912);
+		//Sleep(10000);
+		streamSocket->initiateStream(token);
+		test = streamSocket->recvString();
+		
+		std::cout << "The Server said: " << test;
 		
 		while(1);
 		

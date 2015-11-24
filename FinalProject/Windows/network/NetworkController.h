@@ -17,14 +17,16 @@ public:
 	void makeConnnection(std::string, int);
 	std::string sendMetadata(std::vector<std::string>);
 	int startQueueSocket();
-	void startMetaSocket();
+	void startTCPSocket();
+	void initiateStream(char *);
 	
 	void sendInt(int);
 	void sendString(std::string);
+	void sendToken(char *);
 	int recvInt();
 	std::string recvString();
+	void recvToken(int *,char *);
 private:
 	WSADATA wsaData;
 	SOCKET mySocket;
-	char recvbuf[DEFAULT_BUFLEN];
 };
