@@ -11,10 +11,12 @@
 class ClientSocket
 {
     public:
-        ClientSocket(char *ipAddr, int portNum);
+        ClientSocket();
         ~ClientSocket();
         void error(const char *msg);
         void makeConnection(char *ipAddr, int portNum);
+        int serverBind();
+        void serverListen();
         std::string sendMetadata(std::string thing);
         int sendInt(int msg);
         int sendString(char *msg);
@@ -23,6 +25,7 @@ class ClientSocket
 
     private:
         int mySocket;
+        int listenSocket;
 };
 
 #endif
