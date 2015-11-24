@@ -1,12 +1,12 @@
 BINARY=comp3203
-SOURCES=MetadataController.cpp main.cpp
-LDFLAGS=-static -ltag -lz
+SOURCES=metadata/MetadataController.cpp network/NetworkController.cpp main.cpp
+LDFLAGS=-lws2_32 -static -ltag -lz
 CFLAGS=-c -std=c++11
 CC=g++
 
 OBJECTS=$(SOURCES:.cpp=.o)
-INCFLAGS=-I/c/Libraries/taglib/include
-LIBFLAGS=-L/c/Libraries/taglib/lib
+INCFLAGS=
+LIBFLAGS=
 
 all: $(SOURCES) $(BINARY)
 
