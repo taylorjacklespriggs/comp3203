@@ -10,9 +10,9 @@
 
 #include "ClientSocket.h"
 
-ClientSocket::ClientSocket(char *ipAddr, int portNum) {
-    mySocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (mySocket < 0) error("ERROR: Can't open socket");
+ClientSocket::ClientSocket() {
+    //mySocket = socket(AF_INET, SOCK_STREAM, 0);
+    //if (mySocket < 0) error("ERROR: Can't open socket");
 }
 
 ClientSocket::~ClientSocket() {
@@ -21,6 +21,8 @@ ClientSocket::~ClientSocket() {
 }
 
 void ClientSocket::makeConnection(char *ipAddr, int portNum) {
+    mySocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (mySocket < 0) error("ERROR: Can't open socket");
 
     struct sockaddr_in servAddr;
     struct hostent *server;
@@ -35,6 +37,34 @@ void ClientSocket::makeConnection(char *ipAddr, int portNum) {
     servAddr.sin_port = htons(portNum);
 
     if (connect(mySocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) error("ERROR: Couldn't connect\n");
+}
+
+int ClientSocket::serverBind() {
+    listenSocket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (listenSocket < 0) error("ERROR: Can't open socket");
+
+    int portNum = 5000;
+    struct sockaddr_in servAddr;
+
+    servAddr.sin_family = AF_INET;
+    servAddr.sin_addr.s_addr = INADDR_ANY;
+    servAddr.sin_port = htons(portNum);
+
+    if (bind(listenSocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) error("ERROR: Couldn't bind\n");
+
+    return portNum;
+}
+
+void ClientSocket::serverListen() {
+    // TODO: UDP SERVER
+
+    listen(mySocket, 0);
+
+    //socklen_t clientLen;
+    //struct sockaddr_in cliAddr;
+
+    //mySocket = accept(listenSocket, (struct sockaddr *) &cliAddr, &clientLen);
+    //if (mySocket < 0) error ("ERROR: Couldn't accept client");
 }
 
 std::string sendMetadata(std:: string thing) {
