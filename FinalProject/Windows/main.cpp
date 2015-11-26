@@ -11,9 +11,10 @@
 
 int main (int argc, char* argv[])
 {
-	if (argc > 1)
+	if (argc > 2)
 	{
 		std::string filename = std::string(argv[1]);
+		std::string ip = std::string(argv[2]);
 		
 		MetadataController *metaCtrl = new MetadataController(filename);
 		NetworkController *metaClient = new NetworkController();
@@ -33,32 +34,37 @@ int main (int argc, char* argv[])
 		metaDict.push_back(std::string("year"));
 		metaDict.push_back(metadata->at(std::string("year")));
 		
-		metaClient->makeConnnection(IP, 3711);
+		metaClient->makeConnnection(ip, 3711);
 		std::string test = metaClient->sendMetadata(metaDict);
 		
 		std::cout << "response: " << test << "\n";
 		
-		NetworkController *queueServer = new NetworkController();
-		int serverPort = queueServer->startQueueSocket();
-		metaClient->sendInt(serverPort);
+		if (test.compare("wait") == 0)
+		{
+			NetworkController *queueServer = new NetworkController();
+			int serverPort = queueServer->startQueueSocket();
+			metaClient->sendInt(serverPort);
+			
+			int response;		
+			char token[128];
+			queueServer->recvToken(&response, token);
+			
+			delete queueServer;
+			
+			NetworkController *streamSocket = new NetworkController();
+			streamSocket->startTCPSocket();
+			streamSocket->makeConnnection(ip, response);
+			streamSocket->initiateStream(token);
+			test = streamSocket->recvString();
+			
+			if (test.compare("go") == 0)
+			{
+				std::cout << "The server is ready for the file\n";
+				streamSocket->sendFile(filename);
+			}
+		}
 		
-		int response;		
-		char token[128];
-		queueServer->recvToken(&response, token);
-		std::cout << "Server GOT: " << response << "\n" << "token : " << token;
-		
-		delete queueServer;
-		
-		NetworkController *streamSocket = new NetworkController();
-		streamSocket->startTCPSocket();
-		streamSocket->makeConnnection(IP, 3912);
-		//Sleep(10000);
-		streamSocket->initiateStream(token);
-		test = streamSocket->recvString();
-		
-		std::cout << "The Server said: " << test;
-		
-		while(1);
+		while (1);
 		
 		delete metadata;
 		delete metaCtrl;

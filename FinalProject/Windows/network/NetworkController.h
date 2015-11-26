@@ -6,6 +6,7 @@ extern "C"{
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 #define DEFAULT_BUFLEN 512
 
@@ -23,6 +24,8 @@ public:
 	void sendInt(int);
 	void sendString(std::string);
 	void sendToken(char *);
+	void sendBytes(char *, int);
+	void sendFile(std::string);
 	int recvInt();
 	std::string recvString();
 	void recvToken(int *,char *);

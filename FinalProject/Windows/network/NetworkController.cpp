@@ -121,6 +121,39 @@ void NetworkController::sendToken(char *token)
 	}
 }
 
+void NetworkController::sendBytes(char *data, int size)
+{
+	sendInt(size);
+	int result = send(mySocket, data, DEFAULT_BUFLEN, 0);
+	if( result == SOCKET_ERROR )
+	{
+		// throw an exception here.
+		std::cout << "send failed!\n" << WSAGetLastError();
+	}
+}
+
+void NetworkController::sendFile(std::string filename)
+{
+	std::ifstream inFile;
+	size_t size = 0;
+	inFile.open(filename.c_str(), std::ios::in|std::ios::binary|std::ios::ate);
+	
+	if (inFile.is_open())
+	{
+		char *data = 0;
+		inFile.seekg(0, std::ios::beg);
+		while (!inFile.eof()){
+			char *oldData = data;
+			data = new char[DEFAULT_BUFLEN]();
+			delete oldData;
+			inFile.read(data, DEFAULT_BUFLEN);
+			sendBytes(data, inFile.gcount());
+		}
+		
+		delete data;
+	}
+}
+
 int NetworkController::recvInt()
 {
 	int msg;
