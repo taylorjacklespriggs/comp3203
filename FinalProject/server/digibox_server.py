@@ -151,26 +151,26 @@ class DigiboxServer:
         def target():
             try:
                 token = read_bytes(c_sock, TOKEN_LENGTH, self.__gohard)
-                if self.__next_stream is not None:
-                    write_string(c_sock, b'fail')
-                else:
-                    try:
-                        while self.__go() and self.__next_stream is None:
-                            try:
-                                self.__next_stream = \
-                                        self.__stream_queue.get(True, MAX_SLEEP)
-                            except queue.Empty:
-                                pass
-                        if self.__next_stream.check_token(token):
-                            write_string(c_sock, b'go')
+                try:
+                    while self.__go() and self.__next_stream is None:
+                        try:
+                            self.__next_stream = \
+                                    self.__stream_queue.get(True, MAX_SLEEP)
+                        except queue.Empty:
+                            pass
+                    if self.__next_stream.check_token(token):
+                        write_string(c_sock, b'go')
+                        try:
                             self.__playback(c_sock)
-                        else:
-                            write_string(c_sock, b'fail')
-                    except Exception as e:
-                        self.__log("There was a problem streaming from %s: %s"%\
-                                (c_addr[0], e))
-                    finally:
-                        self.__next_stream = None
+                        finally:
+                            self.__next_stream = None
+                    else:
+                        write_string(c_sock, b'fail')
+                except Exception as e:
+                    self.__log("There was a problem streaming from %s: %s"%\
+                            (c_addr[0], e))
+                finally:
+                    self.__next_stream = None
             except Exception as e:
                 self.__log("There was a problem with the stream: %s"%e)
             finally:
@@ -178,7 +178,7 @@ class DigiboxServer:
         t = threading.Thread(target=target)
         t.start()
     def __playback(self, sock):
-        ffplay = subprocess.Popen(['ffplay', '-i', '-', '-nodisp'], \
+        ffplay = subprocess.Popen(['ffplay', '-i', '-', '-nodisp', '-autoexit'], \
                 stdin=subprocess.PIPE, stderr=open(os.devnull, 'wb'))
         length = 1
         while length:
@@ -187,7 +187,9 @@ class DigiboxServer:
             length = len(bts)
         ffplay.stdin.write(b'')
         ffplay.stdin.close()
+        print("Closed ffplay STDIN")
         ffplay.communicate()
+        print("ffplay finished")
     def __log(self, msg):
         self.__log_queue.put(msg)
     def __logger(self):
