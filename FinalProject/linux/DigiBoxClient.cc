@@ -7,41 +7,54 @@ DigiBoxClient::DigiBoxClient(char *ipa, int p) : ipAddr(ipa), portNum(p) {
 }
 
 void DigiBoxClient::run() {
-    std::cout << "Client Starting...\n";
+    std::string musicFile = "/home/paul/Desktop/201TheImperialMarch.mp3";
 
-    ClientSocket metaSock;
+    std::cout << "DigiBox Client (Linux) now starting...\n";
 
-    metaSock.makeConnection(ipAddr, portNum);
+    // Send song metadata to server
+    ClientSocket *metaSock = new ClientSocket();
 
-    metaSock.sendInt(1);
-    metaSock.sendString("Name");
-    metaSock.sendString("The Duck Song");
-    std::string reply = metaSock.recvString();
+    metaSock->makeConnection(ipAddr, portNum);
 
-    std::cout << "Got this: " << reply << "\n";
+    metaSock->sendInt(1);
+    metaSock->sendString("Name");
+    metaSock->sendString("The Duck Song");
+    std::string reply = metaSock->recvString();
 
-    ClientSocket udpServer;
+    //if (reply.compare("wait") == 0) {
 
-    int port = udpServer.serverBind();
+    //} else {
 
-    std::cout << "UDP ON PORT: " << port << "\n";
+    //}
 
-    metaSock.sendInt(port);
+    // Setup and send UDP port
+    ClientSocket udpListener;
 
-    //int streamPort = udpServer.recvInt();
-    //std::cout << "GOT THIS: " << streamPort << "\n";
+    int udpPort = udpListener.serverBind();
 
+    std::cout << "Listening for stream port and token on UDP port " << udpPort << ".\n";
+
+    metaSock->sendInt(udpPort);
+
+    delete(metaSock);
+
+    // Get stream port and token from server
     int streamPort;
     char token[128];
-    udpServer.recvToken(&streamPort, token);
-    //std::string got = udpServer.recvString();
-    //std::cout << "GOT THIS: " << got << "\n";
-    
+    udpListener.recvToken(&streamPort, token);
+
+    // Authenticate and stream file
     ClientSocket streamSock;
     streamSock.makeConnection(ipAddr, streamPort);
 
     streamSock.sendToken(token);
 
-    std::string streamReply = streamSock.recvString();
-    std::cout << "STREAM REPLY: " << streamReply << "\n";
+    std::string streamStatus = streamSock.recvString();
+
+    if (streamStatus.compare("go") == 0) {
+        std::cout << "Stream authentication successful.\n";
+        streamSock.sendFile(musicFile);
+    } else {
+        std::cout << "Stream authentication failed.\n";
+    }
 }

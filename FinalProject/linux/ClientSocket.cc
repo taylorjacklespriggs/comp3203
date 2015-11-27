@@ -7,12 +7,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <fstream>
 
 #include "ClientSocket.h"
 
 ClientSocket::ClientSocket() {
-    //mySocket = socket(AF_INET, SOCK_STREAM, 0);
-    //if (mySocket < 0) error("ERROR: Can't open socket");
 }
 
 ClientSocket::~ClientSocket() {
@@ -22,13 +21,13 @@ ClientSocket::~ClientSocket() {
 
 void ClientSocket::makeConnection(char *ipAddr, int portNum) {
     mySocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (mySocket < 0) error("ERROR: Can't open socket");
+    if (mySocket < 0) error("Couldn't open socket\n");
 
     struct sockaddr_in servAddr;
     struct hostent *server;
 
     server = gethostbyname(ipAddr);
-    if (server == NULL) error("ERROR: Can't find host");
+    if (server == NULL) error("Couldn't find host\n");
 
     bzero((char *) &servAddr, sizeof(servAddr));
 
@@ -36,23 +35,26 @@ void ClientSocket::makeConnection(char *ipAddr, int portNum) {
     bcopy((char *) server->h_addr, (char *) &servAddr.sin_addr.s_addr, server->h_length);
     servAddr.sin_port = htons(portNum);
 
-    if (connect(mySocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) error("ERROR: Couldn't connect\n");
+    if (connect(mySocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) error("Couldn't connect\n");
 }
 
 int ClientSocket::serverBind() {
     mySocket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (mySocket < 0) error("ERROR: Can't open socket");
+    if (mySocket < 0) error("Couldn't open socket\n");
 
-    int portNum = 5000;
     struct sockaddr_in servAddr;
-
     servAddr.sin_family = AF_INET;
     servAddr.sin_addr.s_addr = INADDR_ANY;
-    servAddr.sin_port = htons(portNum);
+    servAddr.sin_port = htons(0); //Let OS assign port
 
-    if (bind(mySocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) error("ERROR: Couldn't bind\n");
+    if (bind(mySocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) error("Couldn't bind\n");
 
-    return portNum;
+    struct sockaddr_in sin;
+    socklen_t len = sizeof(sin);
+    if (getsockname(mySocket, (struct sockaddr *)&sin, &len) == -1)
+        perror("In getsockname\n");
+
+    return ntohs(sin.sin_port);
 }
 
 std::string sendMetadata(std:: string thing) {
@@ -64,27 +66,31 @@ void ClientSocket::error(const char *msg) {
     exit(0);
 }
 
-int ClientSocket::sendInt(int msg) {
+void ClientSocket::sendInt(int msg) {
     int tmp = htonl(msg);
-    return send(mySocket, &tmp, 4, 0);
+    int success = send(mySocket, &tmp, 4, 0);
+    if (success < 0) error("Problem sending int\n");
 }
 
-int ClientSocket::sendString(char *msg) {
+void ClientSocket::sendString(char *msg) {
     int msgLen = strlen(msg);
     sendInt(msgLen);
-    return send(mySocket, msg, msgLen, 0);
+    int success = send(mySocket, msg, msgLen, 0);
+    if (success < 0) error("Problem sending string\n");
 }
 
 int ClientSocket::recvInt() {
     int tmp = 0;
-    recv(mySocket, &tmp, 4, 0);
+    int success = recv(mySocket, &tmp, 4, 0);
+    if (success < 0) error("Problem receiving int\n");
     return ntohl(tmp);
 }
 
 std::string ClientSocket::recvString() {
     int len = recvInt();
     char buffer[len];
-    recv(mySocket, buffer, len, 0);
+    int success = recv(mySocket, buffer, len, 0);
+    if (success < 0) error("Problem receiving string\n");
     buffer[len] = '\0';
     std::string retval(buffer);
     return retval;
@@ -92,16 +98,35 @@ std::string ClientSocket::recvString() {
 
 void ClientSocket::recvToken(int *port, char *token) {
     char buffer[132];
-    recv(mySocket, buffer, 132, 0);
+    int success = recv(mySocket, buffer, 132, 0);
+    if (success < 0) error("Problem receiving token\n");
 
     *port = ntohl(*(int*) (void *)buffer);
-    std::cout << "PORT: " << *port << "\n";
 
     memcpy(token, buffer+4, 128);
-
-    //std::cout << "GOT TOKEN: " << token << "\n";
 }
 
 void ClientSocket::sendToken(char *token) {
-    send(mySocket, token, 128, 0);
+    int success = send(mySocket, token, 128, 0);
+    if (success < 0) error("Problem sending token\n");
+}
+
+void ClientSocket::sendFile(std::string fileName) {
+    std::cout << "STREAMING FILE: " << fileName << "\n";
+
+    std::ifstream infile;
+    infile.open(fileName.c_str(), std::ios::binary|std::ios::in|std::ios::ate);
+
+    int BUFFERSIZE = 512;
+    infile.seekg(0, std::ios::beg);
+
+    while (!infile.eof()) {
+        char buffer[BUFFERSIZE];
+        infile.read(buffer, BUFFERSIZE);
+        sendInt(infile.gcount());
+        send(mySocket, buffer, infile.gcount(), 0);
+    }
+
+    sendInt(0);
+    infile.close();
 }

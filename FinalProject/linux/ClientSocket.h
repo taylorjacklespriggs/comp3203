@@ -16,18 +16,17 @@ class ClientSocket
         void error(const char *msg);
         void makeConnection(char *ipAddr, int portNum);
         int serverBind();
-        void serverListen();
         std::string sendMetadata(std::string thing);
-        int sendInt(int msg);
-        int sendString(char *msg);
+        void sendInt(int msg);
+        void sendString(char *msg);
         int recvInt();
         std::string recvString();
         void recvToken(int* port, char *token);
         void sendToken(char *token);
+        void sendFile(std::string fileName);
 
     private:
         int mySocket;
-        int listenSocket;
 };
 
 #endif
