@@ -57,8 +57,12 @@ int ClientSocket::serverBind() {
     return ntohs(sin.sin_port);
 }
 
-std::string sendMetadata(std:: string thing) {
-    
+void ClientSocket::sendMetadata(std::unordered_map<std::string, std::string> *metadata) {
+    sendInt(metadata->size());
+    for (auto it = metadata->begin(); it != metadata->end(); ++it) {
+        sendString(it->first.c_str());
+        sendString(it->second.c_str());
+    }
 }
 
 void ClientSocket::error(const char *msg) {
@@ -72,7 +76,7 @@ void ClientSocket::sendInt(int msg) {
     if (success < 0) error("Problem sending int\n");
 }
 
-void ClientSocket::sendString(char *msg) {
+void ClientSocket::sendString(const char *msg) {
     int msgLen = strlen(msg);
     sendInt(msgLen);
     int success = send(mySocket, msg, msgLen, 0);

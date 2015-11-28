@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <unordered_map>
 
 class ClientSocket
 {
@@ -16,9 +17,9 @@ class ClientSocket
         void error(const char *msg);
         void makeConnection(char *ipAddr, int portNum);
         int serverBind();
-        std::string sendMetadata(std::string thing);
+        void sendMetadata(std::unordered_map<std::string, std::string> *metadata);
         void sendInt(int msg);
-        void sendString(char *msg);
+        void sendString(const char *msg);
         int recvInt();
         std::string recvString();
         void recvToken(int* port, char *token);
