@@ -70,6 +70,7 @@ class DigiboxServer:
         self.__accept_thread = threading.Thread(\
             target=self.__accept_streams)
         self.__audio_lock = threading.Semaphore(1)
+        self.__stream_lock = threading.Semaphore(1)
     def __handle_client(self, conn):
         c_sock, c_addr = conn
         self.__log("Received a new client connection from %s:%d"%c_addr)
@@ -95,10 +96,11 @@ class DigiboxServer:
         except queue.Full:
             self.__log("Queue is full, sorry %r"%c_addr[0])
             write_string(c_sock, b'full')
-            write_int(c_sock, len(self.__device_queue))
+            write_int(c_sock, self.__device_queue.qsize())
     def __accept_streams(self):
         while self.__go():
             try:
+                self.__stream_lock.acquire()
                 qd = self.__device_queue.get(True, MAX_SLEEP)
                 qd.ready()
                 token = self.__gen_token()
@@ -118,8 +120,9 @@ class DigiboxServer:
                 if not stream.checked():
                     self.__log(("Failed to contact %s for streaming, "\
                         + "moving on")%qd.ip_addr)
+                    self.__stream_lock.release()
             except queue.Empty:
-                pass
+                self.__stream_lock.release()
     def __handle_stream(self, conn):
         c_sock, c_addr = conn
         c_sock.settimeout(MAX_SLEEP)
@@ -136,9 +139,9 @@ class DigiboxServer:
                         except queue.Empty:
                             pass
                     if self.__next_stream.check_token(token):
+                        self.__next_stream = None
                         write_string(c_sock, b'go')
                         self.__audio_lock.acquire()
-                        self.__next_stream = None
                         try:
                             if self.__go():
                                 self.__playback(c_sock)
@@ -177,6 +180,7 @@ class DigiboxServer:
             ffplay.stdin.write(b'')
             ffplay.stdin.close()
             print("Closed ffplay STDIN")
+            self.__stream_lock.release()
             ffplay.communicate()
             print("ffplay finished")
     def __log(self, msg):
@@ -212,6 +216,8 @@ class DigiboxServer:
                         self.__pause.set()
         except KeyboardInterrupt:
             self.__is_done.set()
+            self.__audio_lock.release()
+            self.__stream_lock.release()
 
 if __name__ == '__main__':
     import os

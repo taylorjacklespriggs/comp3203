@@ -27,7 +27,9 @@ def read_long(sock, *args, **kwargs):
 def read_string(sock, *args, **kwargs):
     return read_bytes(sock, read_int(sock, *args, **kwargs), *args, **kwargs)
 
-def read_dict(sock, dest=dict(), *args, **kwargs):
+def read_dict(sock, dest=None, *args, **kwargs):
+    if dest is None:
+        dest = dict()
     for _ in range(read_int(sock, *args, **kwargs)):
         key = read_string(sock, *args, **kwargs)
         value = read_string(sock, *args, **kwargs)

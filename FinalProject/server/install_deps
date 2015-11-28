@@ -1,16 +1,15 @@
 #!/bin/bash
 
 arch_deps="ffmpeg python-pip"
-deb_deps="libav python-pip"
+deb_deps="python-pip"
 
 if stat /usr/bin/pacman 2>&1 >/dev/null
 then
     sudo pacman -S $arch_deps || (echo "Failed to install arch deps!" >&2 ; exit 1)
-    ln -sf /usr/bin/ffmpeg audio/ffmpeg
 elif stat /usr/bin/apt-get 2>&1 >/dev/null
 then
     sudo apt-get install $deb_deps || (echo "Failed to install debian deps!" >&2 ; exit 1)
-    ln -sf /usr/bin/avconv audio/ffmpeg
+    echo "PLEASE INSTALL FFMPEG MANUALLY"
 else
     echo "Did not find pacman or aptitude, please install pip and libav/ffmpeg manually"
     echo "then link /path/to/ffmpeg or /path/to/avconv to ./ffmpeg"

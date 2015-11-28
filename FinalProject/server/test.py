@@ -4,18 +4,20 @@ import struct
 from sys import argv
 import os
 
+addr = '192.168.0.25'
+
 assert len(argv) == 3, 'Please enter the port and filename as arguments'
 audioFile = open(argv[2], 'rb')
 port = int(argv[1])
 
 s = socket(AF_INET, SOCK_STREAM)
-s.connect(('127.0.0.1', 3711))
+s.connect((addr, 3711))
 
 u = socket(AF_INET, SOCK_DGRAM)
 u.bind(('', port))
 
 try:
-    items = {'title': argv[1]}
+    items = {'title': argv[2]}
 
     write_dict(s, items)
     resp = read_string(s)
@@ -29,7 +31,7 @@ try:
         print("Token length: %d"%len(token))
         try:
             t = socket(AF_INET, SOCK_STREAM)
-            t.connect(('127.0.0.1', port))
+            t.connect((addr, port))
             write_bytes(t, token)
             print("Sent token to server")
             result = read_string(t)
