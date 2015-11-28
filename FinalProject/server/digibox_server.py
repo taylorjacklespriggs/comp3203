@@ -6,16 +6,16 @@ import struct
 from time import sleep
 from sock_rw import *
 import subprocess
+from service_server import TCPServer
+
+from constants import *
 
 MAX_QUEUE = 17
-MAX_LISTENING = 2
 
 TOKEN_LENGTH = 128
 
 NOTIFY_ATTEMPTS = 5
 NOTIFY_PAUSE = 1
-
-MAX_SLEEP = 0.1
 
 def int_sleep(stime, on_tmo):
     while stime > 0 and on_tmo():
@@ -53,36 +53,23 @@ class DigiboxServer:
         self.__disc_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__disc_sock.bind(('', self.__disc_port))
         self.__disc_sock.settimeout(MAX_SLEEP)
-        self.__list_port = int(lport)
-        self.__list_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__list_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.__list_sock.bind(('', self.__list_port))
-        self.__list_sock.settimeout(MAX_SLEEP)
-        self.__str_port = int(sport)
-        self.__str_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__str_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.__str_sock.bind(('', self.__str_port))
-        self.__str_sock.settimeout(MAX_SLEEP)
+        self.__list_server = TCPServer(\
+            "new connection", lport, self.__handle_client,\
+            self.__log)
+        self.__str_server = TCPServer(\
+            "stream", sport, self.__handle_stream,\
+            self.__log)
         self.__is_done = threading.Event()
+        self.__next_song = threading.Event()
+        self.__pause = threading.Event()
         self.__device_queue = queue.Queue(max_queue)
         self.__stream_queue = queue.Queue()
         self.__next_stream = None
         self.__log_queue = queue.Queue()
-    def __listen_new_connection(self):
-        self.__list_sock.listen(MAX_LISTENING)
-        self.__log("Listening for %d new connections on TCP:%d"%\
-                (MAX_LISTENING, self.__list_port))
-        try:
-            while self.__go():
-                try:
-                    self.__handle_client(self.__list_sock.accept())
-                    self.__log("Listen thread accepted a new client")
-                except socket.timeout:
-                    pass
-        except Exception as e:
-            self.__log("Listen socket closed unexpectedly: %s"%e)
-        finally:
-            self.__list_sock.close()
+        self.__log_thread = threading.Thread(target=self.__logger)
+        self.__accept_thread = threading.Thread(\
+            target=self.__accept_streams)
+        self.__audio_lock = threading.Semaphore(1)
     def __handle_client(self, conn):
         c_sock, c_addr = conn
         self.__log("Received a new client connection from %s:%d"%c_addr)
@@ -119,31 +106,20 @@ class DigiboxServer:
                 self.__stream_queue.put(stream)
                 udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 tries = 0
-                msg = struct.pack('>i', self.__str_port) + token
-                while self.__go() and not stream.checked() and tries < NOTIFY_ATTEMPTS:
+                msg = struct.pack('>i', self.__str_server.get_port())\
+                    + token
+                while self.__go() and not stream.checked()\
+                        and tries < NOTIFY_ATTEMPTS:
                     udp_sock.sendto(msg, (qd.ip_addr, qd.port))
                     int_sleep(NOTIFY_PAUSE, self.__go)
                     tries += 1
                     self.__log("Finished attempt %d to contact %s:UDP%d"%\
                             (tries, qd.ip_addr, qd.port))
                 if not stream.checked():
-                    self.__log("Failed to contact %s for streaming, moving on"%qd.ip_addr)
+                    self.__log(("Failed to contact %s for streaming, "\
+                        + "moving on")%qd.ip_addr)
             except queue.Empty:
                 pass
-    def __stream_listen(self):
-        self.__str_sock.listen(2)
-        self.__log("Listening for new streams on TCP:%d"%self.__str_port)
-        try:
-            while self.__go():
-                try:
-                    self.__handle_stream(self.__str_sock.accept())
-                    self.__log("Stream thread accepted a stream")
-                except socket.timeout:
-                    pass
-        except Exception as e:
-            self.__log("There was a problem listening for streams: %s"%e)
-        finally:
-            self.__str_sock.close()
     def __handle_stream(self, conn):
         c_sock, c_addr = conn
         c_sock.settimeout(MAX_SLEEP)
@@ -155,19 +131,24 @@ class DigiboxServer:
                     while self.__go() and self.__next_stream is None:
                         try:
                             self.__next_stream = \
-                                    self.__stream_queue.get(True, MAX_SLEEP)
+                                    self.__stream_queue.get(\
+                                        True, MAX_SLEEP)
                         except queue.Empty:
                             pass
                     if self.__next_stream.check_token(token):
                         write_string(c_sock, b'go')
+                        self.__audio_lock.acquire()
+                        self.__next_stream = None
                         try:
-                            self.__playback(c_sock)
+                            if self.__go():
+                                self.__playback(c_sock)
                         finally:
-                            self.__next_stream = None
+                            self.__audio_lock.release()
                     else:
                         write_string(c_sock, b'fail')
                 except Exception as e:
-                    self.__log("There was a problem streaming from %s: %s"%\
+                    self.__log(("There was a problem streaming "
+                        + "from %s: %s")%\
                             (c_addr[0], e))
                 finally:
                     self.__next_stream = None
@@ -180,16 +161,24 @@ class DigiboxServer:
     def __playback(self, sock):
         ffplay = subprocess.Popen(['ffplay', '-i', '-', '-nodisp', '-autoexit'], \
                 stdin=subprocess.PIPE, stderr=open(os.devnull, 'wb'))
-        length = 1
-        while length:
-            bts = read_string(sock, self.__gohard)
-            ffplay.stdin.write(bts)
-            length = len(bts)
-        ffplay.stdin.write(b'')
-        ffplay.stdin.close()
-        print("Closed ffplay STDIN")
-        ffplay.communicate()
-        print("ffplay finished")
+        try:
+            length = 1
+            while length:
+                if self.__next_song.is_set():
+                    length = 0
+                    self.__next_song.clear()
+                elif self.__pause.is_set():
+                    sleep(MAX_SLEEP)
+                else:
+                    bts = read_string(sock, self.__gohard)
+                    ffplay.stdin.write(bts)
+                    length = len(bts)
+        finally:
+            ffplay.stdin.write(b'')
+            ffplay.stdin.close()
+            print("Closed ffplay STDIN")
+            ffplay.communicate()
+            print("ffplay finished")
     def __log(self, msg):
         self.__log_queue.put(msg)
     def __logger(self):
@@ -208,16 +197,19 @@ class DigiboxServer:
         return True
     def start(self):
         try:
-            t = threading.Thread(target=self.__logger)
-            t.start()
-            t = threading.Thread(target=self.__listen_new_connection)
-            t.start()
-            t = threading.Thread(target=self.__accept_streams)
-            t.start()
-            t = threading.Thread(target=self.__stream_listen)
-            t.start()
+            self.__log_thread.start()
+            self.__list_server.start(self.__go)
+            self.__accept_thread.start()
+            self.__str_server.start(self.__go)
             while True:
-                sleep(1)
+                key = input()
+                if key == 'n':
+                    self.__next_song.set()
+                elif key == 'p':
+                    if self.__pause.is_set():
+                        self.__pause.clear()
+                    else:
+                        self.__pause.set()
         except KeyboardInterrupt:
             self.__is_done.set()
 

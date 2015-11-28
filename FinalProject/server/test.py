@@ -4,14 +4,15 @@ import struct
 from sys import argv
 import os
 
-assert len(argv) > 1, 'Please enter the filename as an argument'
-audioFile = open(argv[1], 'rb')
+assert len(argv) == 3, 'Please enter the port and filename as arguments'
+audioFile = open(argv[2], 'rb')
+port = int(argv[1])
 
 s = socket(AF_INET, SOCK_STREAM)
 s.connect(('127.0.0.1', 3711))
 
 u = socket(AF_INET, SOCK_DGRAM)
-u.bind(('', 2000))
+u.bind(('', port))
 
 try:
     items = {'title': argv[1]}
@@ -21,7 +22,7 @@ try:
     print("server responded with %r"%resp)
 
     if resp == b'wait':
-        write_int(s, 2000)
+        write_int(s, port)
         data, addr = u.recvfrom(132)
         port, token = struct.unpack('>i128s', data)
         print("Port and Token: %d, %r"%(port, token))
