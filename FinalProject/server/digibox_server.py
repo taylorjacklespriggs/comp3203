@@ -12,8 +12,6 @@ from constants import *
 
 MAX_QUEUE = 17
 
-TOKEN_LENGTH = 128
-
 NOTIFY_ATTEMPTS = 5
 NOTIFY_PAUSE = 1
 
@@ -53,9 +51,13 @@ class DigiboxServer:
         self.__disc_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__disc_sock.bind(('', self.__disc_port))
         self.__disc_sock.settimeout(MAX_SLEEP)
+        self.__disc_thread = threading.Thread(target=self.__bcast_responder)
+        self.__disc_msg = bytearray(DISCOVERY_PACKET_SIZE)
         self.__list_server = TCPServer(\
             "new connection", lport, self.__handle_client,\
             self.__log)
+        struct.pack_into('>i%ds'%len(DISCOVERY_HEADER),\
+                self.__disc_msg, 0, self.__list_server.get_port(), DISCOVERY_HEADER)
         self.__str_server = TCPServer(\
             "stream", sport, self.__handle_stream,\
             self.__log)
@@ -71,6 +73,15 @@ class DigiboxServer:
             target=self.__accept_streams)
         self.__audio_lock = threading.Semaphore(1)
         self.__stream_lock = threading.Semaphore(1)
+    def __bcast_responder(self):
+        print("Responding to broadcasts on port %d"%self.__disc_port)
+        while self.__go():
+            try:
+                _, addr = self.__disc_sock.recvfrom(0)
+                self.__disc_sock.sendto(self.__disc_msg, addr)
+                print("Responded to broadcast at %s:%d"%addr)
+            except socket.timeout:
+                pass
     def __handle_client(self, conn):
         c_sock, c_addr = conn
         self.__log("Received a new client connection from %s:%d"%c_addr)
@@ -202,9 +213,10 @@ class DigiboxServer:
     def start(self):
         try:
             self.__log_thread.start()
-            self.__list_server.start(self.__go)
-            self.__accept_thread.start()
             self.__str_server.start(self.__go)
+            self.__accept_thread.start()
+            self.__list_server.start(self.__go)
+            self.__disc_thread.start()
             while True:
                 key = input()
                 if key == 'n':
@@ -222,7 +234,7 @@ class DigiboxServer:
 if __name__ == '__main__':
     import os
     try:
-        dport = os.getenv('DPORT', '3513')
+        dport = os.getenv('DPORT', DISCOVERY_PORT)
         lport = os.getenv('LPORT', '3711')
         sport = os.getenv('SPORT', '3912')
         DigiboxServer(dport, lport, sport).start()
