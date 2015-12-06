@@ -4,11 +4,14 @@
 class DigiBoxClient
 {
     public:
-        DigiBoxClient(char *ipa, int p);
+        DigiBoxClient();
+        ~DigiBoxClient();
         void run();
     private:
-        char *ipAddr;
-        int portNum;
+        char *serverAddr;
+        int serverPort;
+        std::string musicFile;
+        void connect();
 };
 
 #endif

@@ -1,20 +1,33 @@
 #include <iostream>
+#include <string.h>
 
 #include "DigiBoxClient.h"
 #include "ClientSocket.h"
 #include "MetadataController.h"
 
-DigiBoxClient::DigiBoxClient(char *ipa, int p) : ipAddr(ipa), portNum(p) {
+DigiBoxClient::DigiBoxClient() {
+    serverAddr = new char[16];
+    musicFile = "/home/paul/Desktop/201TheImperialMarch.mp3";
+}
+
+DigiBoxClient::~DigiBoxClient() {
+    delete[] serverAddr;
 }
 
 void DigiBoxClient::run() {
-    std::string musicFile = "/home/paul/Desktop/201TheImperialMarch.mp3";
+    std::cout << "DigiBox client (Linux) now starting...\n";
 
-    std::cout << "DigiBox Client (Linux) now starting...\n";
+    ClientSocket findSocket;
+    findSocket.findServer(43110, serverAddr, &serverPort);
+    std::cout << "DigiBox server found at " << serverAddr << ":" << serverPort << "\n";
 
+    connect();
+}
+
+void DigiBoxClient::connect() {
     // Open connection and send song metadata to server
     ClientSocket *metaSock = new ClientSocket();
-    metaSock->makeConnection(ipAddr, portNum);
+    metaSock->makeConnection(serverAddr, serverPort);
 
     MetadataController *metaCtrl = new MetadataController(musicFile);
     std::unordered_map<std::string, std::string> *metadata = metaCtrl->getMetadata();
@@ -44,7 +57,7 @@ void DigiBoxClient::run() {
 
     // Authenticate and stream file
     ClientSocket streamSock;
-    streamSock.makeConnection(ipAddr, streamPort);
+    streamSock.makeConnection(serverAddr, streamPort);
 
     streamSock.sendToken(token);
     std::string streamStatus = streamSock.recvString();

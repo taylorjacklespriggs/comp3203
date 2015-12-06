@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h> 
 #include <fstream>
@@ -52,9 +53,46 @@ int ClientSocket::serverBind() {
     struct sockaddr_in sin;
     socklen_t len = sizeof(sin);
     if (getsockname(mySocket, (struct sockaddr *)&sin, &len) == -1)
-        perror("In getsockname\n");
+        error("In getsockname\n");
 
     return ntohs(sin.sin_port);
+}
+
+void ClientSocket::findServer(int broadcastPort, char *retAddr, int *retPort) {
+    mySocket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (mySocket < 0) error("Couldn't open socket\n");
+
+    int broadcastPermission = 1;
+    if (setsockopt(mySocket, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission,
+                sizeof(broadcastPermission)) < 0) error("setsockopt() failed");
+
+    struct sockaddr_in broadcastAddr;
+    broadcastAddr.sin_family = AF_INET;
+    inet_pton(AF_INET, "255.255.255.255", &(broadcastAddr.sin_addr));
+    broadcastAddr.sin_port = htons(broadcastPort);
+
+    short int x = 0;
+    if (sendto(mySocket, &x, sizeof(x), 0, (struct sockaddr *) &broadcastAddr,
+                sizeof(broadcastAddr)) != sizeof(x)) {
+        error("sendto() sent a different number of bytes than expected");
+    }
+
+    int numbytes;
+    struct sockaddr_in their_addr;
+    int buf = 0;
+    socklen_t addr_len;
+    addr_len = sizeof their_addr;
+    if ((numbytes = recvfrom(mySocket, &buf, 4, 0,
+        (struct sockaddr *)&their_addr, &addr_len)) == -1) {
+        error("recvfrom");
+    }
+
+    int serverPort = ntohl(buf);
+    char serverAddr[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &their_addr.sin_addr, serverAddr, INET_ADDRSTRLEN);
+
+    *retPort = serverPort;
+    strcpy(retAddr, serverAddr);
 }
 
 void ClientSocket::sendMetadata(std::unordered_map<std::string, std::string> *metadata) {

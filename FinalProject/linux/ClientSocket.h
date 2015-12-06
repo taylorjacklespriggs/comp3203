@@ -17,6 +17,7 @@ class ClientSocket
         void error(const char *msg);
         void makeConnection(char *ipAddr, int portNum);
         int serverBind();
+        void findServer(int port, char *retAddr, int *retPort);
         void sendMetadata(std::unordered_map<std::string, std::string> *metadata);
         void sendInt(int msg);
         void sendString(const char *msg);
