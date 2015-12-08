@@ -5,9 +5,9 @@
 
 int main(int argc, char *argv[]) {
     DigiBoxClient *client = new DigiBoxClient();
-    client->run();
+    int success = client->run();
 
     delete client;
 
-    return 0;
+    return success;
 }

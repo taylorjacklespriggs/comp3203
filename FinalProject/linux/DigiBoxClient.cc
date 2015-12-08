@@ -1,27 +1,46 @@
 #include <iostream>
 #include <string.h>
+#include <gtkmm/application.h>
 
 #include "DigiBoxClient.h"
 #include "ClientSocket.h"
-#include "MetadataController.h"
+#include "ClientGUI.h"
 
 DigiBoxClient::DigiBoxClient() {
     serverAddr = new char[16];
     musicFile = "/home/paul/Desktop/201TheImperialMarch.mp3";
+    //metadata = new std::unordered_map<std::string, std::string>();
+    //metadata = new std::unordered_map<std::string, std::string>();
 }
 
 DigiBoxClient::~DigiBoxClient() {
     delete[] serverAddr;
+    //delete metadata;
 }
 
-void DigiBoxClient::run() {
+int DigiBoxClient::run() {
     std::cout << "DigiBox client (Linux) now starting...\n";
 
     ClientSocket findSocket;
     findSocket.findServer(43110, serverAddr, &serverPort);
     std::cout << "DigiBox server found at " << serverAddr << ":" << serverPort << "\n";
 
-    connect();
+    auto app = Gtk::Application::create();
+
+    ClientGUI gui(this);
+    return app->run(gui);
+
+    //connect();
+}
+
+std::unordered_map<std::string, std::string> DigiBoxClient::setMetadata(std::string fileName) {
+    musicFile = fileName;
+
+    MetadataController metaCtrl(fileName);
+    std::unordered_map<std::string, std::string> *m= metaCtrl.getMetadata();
+    metadata = *m;
+    delete m;
+    return metadata;
 }
 
 void DigiBoxClient::connect() {
@@ -29,10 +48,10 @@ void DigiBoxClient::connect() {
     ClientSocket *metaSock = new ClientSocket();
     metaSock->makeConnection(serverAddr, serverPort);
 
-    MetadataController *metaCtrl = new MetadataController(musicFile);
-    std::unordered_map<std::string, std::string> *metadata = metaCtrl->getMetadata();
-    metaSock->sendMetadata(metadata);
-    delete(metaCtrl);
+    //MetadataController *metaCtrl = new MetadataController(musicFile);
+    //std::unordered_map<std::string, std::string> *metadata = metaCtrl->getMetadata();
+    metaSock->sendMetadata(&metadata);
+    //delete(metaCtrl);
 
     std::string reply = metaSock->recvString();
     if (reply.compare("wait") != 0) {
