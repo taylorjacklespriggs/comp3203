@@ -46,21 +46,27 @@ class DigiboxServer:
             return ret
         def checked(self):
             return self.ev.is_set()
-    def __init__(self, dport, lport, sport, max_queue = MAX_QUEUE):
+    def __init__(self, dport, lport, sport, pport, paswd, max_queue = MAX_QUEUE):
         self.__disc_port = int(dport)
         self.__disc_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__disc_sock.bind(('', self.__disc_port))
         self.__disc_sock.settimeout(MAX_SLEEP)
+        self.__disc_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.__disc_thread = threading.Thread(target=self.__bcast_responder)
         self.__disc_msg = bytearray(DISCOVERY_PACKET_SIZE)
         self.__list_server = TCPServer(\
             "new connection", lport, self.__handle_client,\
             self.__log)
-        struct.pack_into('>i%ds'%len(DISCOVERY_HEADER),\
-                self.__disc_msg, 0, self.__list_server.get_port(), DISCOVERY_HEADER)
         self.__str_server = TCPServer(\
             "stream", sport, self.__handle_stream,\
             self.__log)
+        self.__play_server = TCPServer(\
+            "playback", pport, self.__handle_playback,\
+            self.__log)
+        struct.pack_into('>ii%ds'%len(DISCOVERY_HEADER),\
+                self.__disc_msg, 0, self.__list_server.get_port(),\
+                self.__play_server.get_port(), DISCOVERY_HEADER)
+        self.__password = paswd
         self.__is_done = threading.Event()
         self.__next_song = threading.Event()
         self.__pause = threading.Event()
@@ -73,6 +79,15 @@ class DigiboxServer:
             target=self.__accept_streams)
         self.__audio_lock = threading.Semaphore(1)
         self.__stream_lock = threading.Semaphore(1)
+    def __check_password(self, pwd):
+        return pwd == self.__password
+    def __play_pause(self):
+        if self.__pause.is_set():
+            self.__pause.clear()
+        else:
+            self.__pause.set()
+    def __next(self):
+        self.__next_song.set()
     def __bcast_responder(self):
         print("Responding to broadcasts on port %d"%self.__disc_port)
         while self.__go():
@@ -170,8 +185,40 @@ class DigiboxServer:
                 self.__log("There was a problem with the stream: %s"%e)
             finally:
                 c_sock.close()
-        t = threading.Thread(target=target)
-        t.start()
+        threading.Thread(target=target).start()
+    def __get_info(self):
+        return dict()
+    def __handle_playback(self, conn):
+        sock, addr = conn
+        actions = {\
+                b'play': self.__play_pause,\
+                b'pause': self.__play_pause,\
+                b'next': self.__next\
+                }
+        def check_then_play(vals):
+            if self.__check_password(vals[b'password']):
+                try:
+                    actions[vals[b'action']]()
+                    write_string(sock, b'done')
+                    return
+                except:
+                    pass
+            write_string(sock, b'fail')
+        def request_info(_):
+            write_dict(sock, self.__get_info())
+        actions = {\
+                b'playback': check_then_play,\
+                b'getinfo': request_info,\
+                }
+        def target():
+            req = read_dict(sock, on_timeout=self.__gohard)
+            self.__log("Client requested %r"%req)
+            try:
+                actions[req[b'request']](req)
+            except Exception as e:
+                self.__log("request %r failed: %s"%(req, e))
+            sock.close()
+        threading.Thread(target=target).start()
     def __playback(self, sock):
         ffplay = subprocess.Popen(['ffplay', '-i', '-', '-nodisp', '-autoexit'], \
                 stdin=subprocess.PIPE, stderr=open(os.devnull, 'wb'))
@@ -199,7 +246,7 @@ class DigiboxServer:
     def __logger(self):
         while self.__go():
             try:
-                print(self.__log_queue.get(True, 0.1))
+                print(self.__log_queue.get(True, MAX_SLEEP))
             except queue.Empty:
                 pass
     def __gen_token(self):
@@ -216,20 +263,20 @@ class DigiboxServer:
             self.__str_server.start(self.__go)
             self.__accept_thread.start()
             self.__list_server.start(self.__go)
+            self.__play_server.start(self.__go)
+            sleep(MAX_SLEEP)
             self.__disc_thread.start()
             while True:
                 key = input()
                 if key == 'n':
-                    self.__next_song.set()
+                    self.__next()
                 elif key == 'p':
-                    if self.__pause.is_set():
-                        self.__pause.clear()
-                    else:
-                        self.__pause.set()
+                    self.__play_pause()
         except KeyboardInterrupt:
             self.__is_done.set()
             self.__audio_lock.release()
             self.__stream_lock.release()
+            self.__next()
 
 if __name__ == '__main__':
     import os
@@ -237,7 +284,8 @@ if __name__ == '__main__':
         dport = os.getenv('DPORT', DISCOVERY_PORT)
         lport = os.getenv('LPORT', '3711')
         sport = os.getenv('SPORT', '3912')
-        DigiboxServer(dport, lport, sport).start()
+        pport = os.getenv('PPORT', '4172')
+        DigiboxServer(dport, lport, sport, pport, PASSWORD).start()
     except ValueError:
         print("Please enter integers for port numbers")
 
