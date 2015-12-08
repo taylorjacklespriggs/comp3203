@@ -25,9 +25,8 @@ class DigiboxServer:
     class FinishedException(Exception):
         pass
     class __QueuedDevice:
-        def __init__(self, ip_addr, m_data):
+        def __init__(self, ip_addr):
             self.ip_addr = ip_addr
-            self.m_data = m_data
             self.port = None
             self.sem = threading.Semaphore(0)
         def ready(self):
@@ -72,6 +71,8 @@ class DigiboxServer:
         self.__pause = threading.Event()
         self.__device_queue = queue.Queue(max_queue)
         self.__stream_queue = queue.Queue()
+        self.__metalock = threading.Lock()
+        self.__metalist = []
         self.__next_stream = None
         self.__log_queue = queue.Queue()
         self.__log_thread = threading.Thread(target=self.__logger)
@@ -111,9 +112,12 @@ class DigiboxServer:
         t.start()
     def __queue_device(self, conn, m_data):
         c_sock, c_addr = conn
+        device = DigiboxServer.__QueuedDevice(c_addr[0])
         try:
-            device = DigiboxServer.__QueuedDevice(c_addr[0], m_data)
             self.__device_queue.put_nowait(device)
+            self.__metalock.acquire()
+            self.__metalist.append(m_data)
+            self.__metalock.release()
             self.__log("Queued device at %s"%c_addr[0])
             write_string(c_sock, b'wait')
             port = read_int(c_sock, self.__gohard)
@@ -147,6 +151,9 @@ class DigiboxServer:
                     self.__log(("Failed to contact %s for streaming, "\
                         + "moving on")%qd.ip_addr)
                     self.__stream_lock.release()
+                    self.__metalock.acquire()
+                    self.__metalist.pop(0)
+                    self.__metalock.release()
             except queue.Empty:
                 self.__stream_lock.release()
     def __handle_stream(self, conn):
@@ -187,7 +194,24 @@ class DigiboxServer:
                 c_sock.close()
         threading.Thread(target=target).start()
     def __get_info(self):
-        return dict()
+        def ser_str(string):
+            return struct.pack('>i', len(string)) + string
+        def ser_dict(dct):
+            return struct.pack('>i', len(dct)) +\
+                    b''.join(ser_str(k) + ser_str(v) for k, v in dct.items())
+        data = dict()
+        self.__metalock.acquire()
+        data[b'songs'] = struct.pack('>i', len(self.__metalist)) +\
+                b''.join(ser_dict(s) for s in self.__metalist)
+        if not len(self.__metalist):
+            status = b'empty'
+        elif self.__pause.is_set():
+            status = b'paused'
+        else:
+            status = b'playing'
+        self.__metalock.release()
+        data[b'status'] = status
+        return data
     def __handle_playback(self, conn):
         sock, addr = conn
         actions = {\
@@ -201,12 +225,12 @@ class DigiboxServer:
                     actions[vals[b'action']]()
                     write_string(sock, b'done')
                     return
-                except:
-                    pass
+                except Exception as e:
+                    self.__log("password check passed but there was a problem: %r"%e)
             write_string(sock, b'fail')
         def request_info(_):
             write_dict(sock, self.__get_info())
-        actions = {\
+        requests = {\
                 b'playback': check_then_play,\
                 b'getinfo': request_info,\
                 }
@@ -214,7 +238,7 @@ class DigiboxServer:
             req = read_dict(sock, on_timeout=self.__gohard)
             self.__log("Client requested %r"%req)
             try:
-                actions[req[b'request']](req)
+                requests[req[b'request']](req)
             except Exception as e:
                 self.__log("request %r failed: %s"%(req, e))
             sock.close()
@@ -240,6 +264,9 @@ class DigiboxServer:
             print("Closed ffplay STDIN")
             self.__stream_lock.release()
             ffplay.communicate()
+            self.__metalock.acquire()
+            self.__metalist.pop(0)
+            self.__metalock.release()
             print("ffplay finished")
     def __log(self, msg):
         self.__log_queue.put(msg)
