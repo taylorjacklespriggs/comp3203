@@ -1,0 +1,45 @@
+I have added a new port for playback
+
+You can find the port number from the udp discovery packet
+The new packet format is
+
+  4   4       24       Total 32
+|---|---|-----...-----|
+  L   P       VERSION
+
+where L is the listening port for metadata,
+P is the playback port,
+and VERSION is a version string.
+
+The new format is reverse compatible
+
+Note:
+datatypes are encoded as follows:
+int: 4 bytes big endian
+string: length as int followed by content
+list: length as int followed by list
+dict: length as int followed by key then value for all key value pairs
+
+A thread is listening on P for a dictionary that is encoded
+the same way as the metadata
+
+If the dictionary received is { "request":"getinfo" } then
+a dictionary of the info will be the response. The returned dictionary
+has two keys currently:
+    songs: an encoded string
+            it is encoded as a list of dictionaries
+            you will have to read the first 4 bytes as
+            an int, then read that many dictionaries
+            out of the string
+            the list of the dictionaries is the metadata
+            in order of playback
+    status: one of "empty", "playing", "paused"
+
+If the dictionary is { "request":"playback", ... }
+then
+    the dictionary must have a field { ..., "action":..., ... }
+    this key can obtain values "play", "pause", "next"
+    the dictionary must also have a field { ..., "password":... }
+    the password is hardcoded to be "boxdigger" for now
+
+good luck implementing!
