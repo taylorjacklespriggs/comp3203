@@ -1,6 +1,11 @@
+#ifndef NETWORKCONTROLLER_H
+#define NETWORKCONTROLLER_H
+
+
 extern "C"{
-#include <winsock2.h>	
-#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
 }
 
 #include <string>
@@ -19,8 +24,9 @@ public:
 	std::string sendMetadata(std::vector<std::string>);
 	int startQueueSocket();
 	void startTCPSocket();
+	void startBroadcastSocket(int, char *, int *);
 	void initiateStream(char *);
-	
+
 	void sendInt(int);
 	void sendString(std::string);
 	void sendToken(char *);
@@ -32,4 +38,8 @@ public:
 private:
 	WSADATA wsaData;
 	SOCKET mySocket;
+    const char* inet_ntop(int, const void*, char*, int);
+    inet_pton(int, const char *, void *);
 };
+
+#endif

@@ -15,7 +15,14 @@ int main (int argc, char* argv[])
 	{
 		std::string filename = std::string(argv[1]);
 		std::string ip = std::string(argv[2]);
-		
+
+        NetworkController *broadcastClient = new NetworkController();
+        char *metaAddr = new char[16]();
+        int metaPort;
+        broadcastClient->startBroadcastSocket(43110, metaAddr, &metaPort);
+
+        std::cout << "addr: " << metaAddr << " port: " << metaPort;
+
 		MetadataController *metaCtrl = new MetadataController(filename);
 		NetworkController *metaClient = new NetworkController();
 		metaClient->startTCPSocket();
