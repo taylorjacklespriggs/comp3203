@@ -16,8 +16,8 @@ void DigiBoxClient::run()
     std::cout << "DigiBox client (Windows) is now starting..." << std::endl;
 
     NetworkController *broadcastClient = new NetworkController();
-    broadcastClient->startBroadcastSocket(43110, &ip, &port);
-    std::cout << "DigiBox server found at " << ip << ":" << port << std::endl; 
+    broadcastClient->startBroadcastSocket(43110, &ip, &serverPort, &playbackPort);
+    std::cout << "DigiBox server found at " << ip << ":" << serverPort << " Playback port: " << playbackPort << std::endl;
 
     auto app = Gtk::Application::create();
     ClientGUI gui(this);
@@ -50,7 +50,7 @@ void DigiBoxClient::connect()
 	metaDict.push_back(std::string("year"));
 	metaDict.push_back(metadata->at(std::string("year")));
 	
-	metaClient->makeConnnection(ip, port);
+	metaClient->makeConnnection(ip, serverPort);
 	std::string response = metaClient->sendMetadata(metaDict);
 
     if(response.compare("wait") != 0)

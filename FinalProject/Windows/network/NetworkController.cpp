@@ -50,7 +50,8 @@ int NetworkController::startQueueSocket()
 
 void NetworkController::startBroadcastSocket(int broadcastingPort,
                                              std::string *retAddr,
-                                             int *retPort)
+                                             int *retServPort,
+                                             int *retPlayPort)
 {
 	if((mySocket = socket(AF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
 	{
@@ -109,16 +110,27 @@ void NetworkController::startBroadcastSocket(int broadcastingPort,
 
     int numbytes;
     struct sockaddr_in their_addr;
-    int buf = 0;
+    char *buf = (char*) malloc(8);
     int addr_len = sizeof(their_addr);
-    numbytes = recvfrom(mySocket, (char *)&buf, 4, 0, 
+    numbytes = recvfrom(mySocket, buf, 8, 0, 
                (struct sockaddr *)&their_addr, &addr_len);
 
-    int serverPort = ntohl(buf);
+    int *tempServerPort = (int *)malloc(sizeof(int));
+    int *tempPlaybackPort = (int *)malloc(sizeof(int));
+    memcpy(tempServerPort, buf, 4);
+    memcpy(tempPlaybackPort, buf+4, 4);
+
+    int serverPort = ntohl(*tempServerPort);
+    int playbackPort = ntohl(*tempPlaybackPort);
+    free(buf);
+    free(tempServerPort);
+    free(tempPlaybackPort);
+    std::cout << "metaPort: " << serverPort << " playback: " << playbackPort << std::endl; 
     char serverAddr[16];
     inet_ntop(AF_INET, &their_addr.sin_addr, serverAddr, 16);
 
-    *retPort = serverPort;
+    *retServPort = serverPort;
+    *retPlayPort = playbackPort;
     *retAddr = std::string(serverAddr);    
 }
 

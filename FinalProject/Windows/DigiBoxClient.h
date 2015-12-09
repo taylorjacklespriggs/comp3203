@@ -17,7 +17,8 @@ public:
     void connect();
 private:
     std::string ip;
-    int port;
+    int serverPort;
+    int playbackPort;
     std::unordered_map<std::string, std::string> *metadata;
     std::string musicFile;
 };
