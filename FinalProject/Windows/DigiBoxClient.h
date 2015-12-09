@@ -15,6 +15,9 @@ public:
     void run();
     std::unordered_map<std::string, std::string> setMetadata(std::string);
     void connect();
+    void play();
+    void pause();
+    void next();
 private:
     std::string ip;
     int serverPort;

@@ -8,19 +8,28 @@ ClientGUI::ClientGUI(DigiBoxClient *c) :
     client(c),
     fileButton("Choose Song"),
     metaFrame("Selected Song"),
-    queueButton("Stream Song")
+    queueButton("Stream Song"),
+    playButton("Play"), 
+    pauseButton("Pause"), 
+    nextButton("Next")
 {
     set_default_size(400, 400);
     fileButton.set_hexpand(true);
     setMargins(&fileButton,10,10,10,10);
     setMargins(&queueButton,10,10,10,10);
+    setMargins(&playButton,0,5,10,10);
+    setMargins(&pauseButton,0,5,10,5);
+    setMargins(&nextButton,0,10,10,5);
     queueButton.set_sensitive(false);
     setMargins(&metaFrame, 0, 10, 0, 10);
     metaFrame.set_vexpand(true);
 
-    mainLayout.attach(fileButton, 0, 0, 1, 1);
-    mainLayout.attach(metaFrame, 0, 1, 1, 1);
-    mainLayout.attach(queueButton, 0, 2, 1, 1);
+    mainLayout.attach(fileButton, 0, 0, 3, 1);
+    mainLayout.attach(metaFrame, 0, 1, 3, 1);
+    mainLayout.attach(queueButton, 0, 2, 3, 1);
+    mainLayout.attach(playButton, 0, 3, 1, 1);
+    mainLayout.attach(pauseButton, 1, 3, 1, 1);
+    mainLayout.attach(nextButton, 2, 3, 1, 1);
 
     metaLayout = Gtk::manage(new Gtk::Grid());
     Gtk::Label *label = Gtk::manage(new Gtk::Label("Please select a song."));
@@ -34,6 +43,12 @@ ClientGUI::ClientGUI(DigiBoxClient *c) :
               &ClientGUI::on_fileButton_clicked));
     queueButton.signal_clicked().connect(sigc::mem_fun(*this,
               &ClientGUI::on_queueButton_clicked));
+    playButton.signal_clicked().connect(sigc::mem_fun(*this,
+              &ClientGUI::on_playButton_clicked));
+    pauseButton.signal_clicked().connect(sigc::mem_fun(*this,
+              &ClientGUI::on_pauseButton_clicked));
+    nextButton.signal_clicked().connect(sigc::mem_fun(*this,
+              &ClientGUI::on_nextButton_clicked));
 }
 
 ClientGUI::~ClientGUI() {
@@ -90,23 +105,6 @@ void ClientGUI::on_fileButton_clicked() {
   dialog.add_button("_Open", Gtk::RESPONSE_OK);
 
   //Add filters, so that only certain file types can be selected:
-
-  //auto filter_text = Gtk::FileFilter::create();
-  //filter_text->set_name("Text files");
-  //filter_text->add_mime_type("text/plain");
-  //dialog.add_filter(filter_text);
-
-  //auto filter_cpp = Gtk::FileFilter::create();
-  //filter_cpp->set_name("C/C++ files");
-  //filter_cpp->add_mime_type("text/x-c");
-  //filter_cpp->add_mime_type("text/x-c++");
-  //filter_cpp->add_mime_type("text/x-c-header");
-  //dialog.add_filter(filter_cpp);
-
-  //auto filter_any = Gtk::FileFilter::create();
-  //filter_any->set_name("Any files");
-  //filter_any->add_pattern("*");
-  //dialog.add_filter(filter_any);
   
   auto filter_mp3 = Gtk::FileFilter::create();
   filter_mp3->set_name("MP3 files");
@@ -144,12 +142,32 @@ void ClientGUI::on_fileButton_clicked() {
 
 void ClientGUI::streamState() {
     fileButton.set_sensitive(false);
+    queueButton.set_sensitive(false);
     client->connect();
     fileButton.set_sensitive(true);
+    queueButton.set_sensitive(true);
+}
+
+void ClientGUI::streamStateWrap(ClientGUI *me) {
+    me->streamState();
 }
 
 void ClientGUI::on_queueButton_clicked() {
+    //std::thread streamThread(&ClientGUI::streamStateWrap, this);
+    //streamThread.detach();
     streamState();
+}
+
+void ClientGUI::on_playButton_clicked() {
+    client->play();
+}
+
+void ClientGUI::on_pauseButton_clicked() {
+    client->pause();
+}
+
+void ClientGUI::on_nextButton_clicked() {
+    client->next();
 }
 
 void ClientGUI::setMargins(Gtk::Widget *w, int to, int ri, int bo, int le) {

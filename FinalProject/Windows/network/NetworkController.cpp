@@ -134,7 +134,7 @@ void NetworkController::startBroadcastSocket(int broadcastingPort,
     *retAddr = std::string(serverAddr);    
 }
 
-void NetworkController::makeConnnection(std::string server, int port)
+void NetworkController::makeConnection(std::string server, int port)
 {
 	struct sockaddr_in saServer;
 

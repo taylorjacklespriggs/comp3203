@@ -50,7 +50,7 @@ void DigiBoxClient::connect()
 	metaDict.push_back(std::string("year"));
 	metaDict.push_back(metadata->at(std::string("year")));
 	
-	metaClient->makeConnnection(ip, serverPort);
+	metaClient->makeConnection(ip, serverPort);
 	std::string response = metaClient->sendMetadata(metaDict);
 
     if(response.compare("wait") != 0)
@@ -71,7 +71,7 @@ void DigiBoxClient::connect()
 
     NetworkController *streamSocket = new NetworkController();
 	streamSocket->startTCPSocket();
-	streamSocket->makeConnnection(ip, streamPort);
+	streamSocket->makeConnection(ip, streamPort);
 	streamSocket->initiateStream(token);
 	response = streamSocket->recvString();
 
@@ -80,3 +80,46 @@ void DigiBoxClient::connect()
         streamSocket->sendFile(musicFile);
     }
 }
+
+void DigiBoxClient::play()
+{
+    NetworkController sock;
+    sock.startTCPSocket();
+    sock.makeConnection(ip, playbackPort);
+    sock.sendInt(3);
+    sock.sendString("request");
+    sock.sendString("playback");
+    sock.sendString("action");
+    sock.sendString("play");
+    sock.sendString("password");
+    sock.sendString("boxdigger");
+    Sleep(5000);
+}
+
+void DigiBoxClient::pause() {
+    NetworkController sock;
+    sock.startTCPSocket();
+    sock.makeConnection(ip, playbackPort);
+    sock.sendInt(3);
+    sock.sendString("request");
+    sock.sendString("playback");
+    sock.sendString("action");
+    sock.sendString("pause");
+    sock.sendString("password");
+    sock.sendString("boxdigger");
+    Sleep(5000); 
+}
+void DigiBoxClient::next() {
+    NetworkController sock;
+    sock.startTCPSocket();
+    sock.makeConnection(ip, playbackPort);
+    sock.sendInt(3);
+    sock.sendString("request");
+    sock.sendString("playback");
+    sock.sendString("action");
+    sock.sendString("next");
+    sock.sendString("password");
+    sock.sendString("boxdigger");
+    Sleep(5000); //sleep a bit to prevent connection from breaking early
+}
+

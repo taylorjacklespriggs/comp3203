@@ -20,7 +20,7 @@ class NetworkController
 public:
 	NetworkController();
 	~NetworkController();
-	void makeConnnection(std::string, int);
+	void makeConnection(std::string, int);
 	std::string sendMetadata(std::vector<std::string>);
 	int startQueueSocket();
 	void startTCPSocket();
