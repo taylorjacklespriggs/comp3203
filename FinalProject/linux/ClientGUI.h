@@ -27,6 +27,7 @@ class ClientGUI : public Gtk::Window {
         void on_fileButton_clicked();
         void on_queueButton_clicked();
         void streamState();
+        static void streamStateWrap(ClientGUI *me);
         void setMargins(Gtk::Widget *w, int to, int ri, int bo, int le);
 
 };

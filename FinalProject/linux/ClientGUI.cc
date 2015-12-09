@@ -144,12 +144,19 @@ void ClientGUI::on_fileButton_clicked() {
 
 void ClientGUI::streamState() {
     fileButton.set_sensitive(false);
+    queueButton.set_sensitive(false);
     client->connect();
     fileButton.set_sensitive(true);
+    queueButton.set_sensitive(true);
+}
+
+void ClientGUI::streamStateWrap(ClientGUI *me) {
+    me->streamState();
 }
 
 void ClientGUI::on_queueButton_clicked() {
-    streamState();
+    std::thread streamThread(&ClientGUI::streamStateWrap, this);
+    streamThread.detach();
 }
 
 void ClientGUI::setMargins(Gtk::Widget *w, int to, int ri, int bo, int le) {
