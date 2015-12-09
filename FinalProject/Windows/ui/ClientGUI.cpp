@@ -144,7 +144,7 @@ void ClientGUI::on_fileButton_clicked() {
 
 void ClientGUI::streamState() {
     fileButton.set_sensitive(false);
-    //client->connect();
+    client->connect();
     fileButton.set_sensitive(true);
 }
 

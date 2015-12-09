@@ -14,8 +14,10 @@ public:
     ~DigiBoxClient();
     void run();
     std::unordered_map<std::string, std::string> setMetadata(std::string);
+    void connect();
 private:
     std::string ip;
+    int port;
     std::unordered_map<std::string, std::string> *metadata;
     std::string musicFile;
 };
