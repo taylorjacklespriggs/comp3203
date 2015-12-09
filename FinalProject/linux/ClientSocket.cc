@@ -58,7 +58,7 @@ int ClientSocket::serverBind() {
     return ntohs(sin.sin_port);
 }
 
-void ClientSocket::findServer(int broadcastPort, char *retAddr, int *retPort) {
+void ClientSocket::findServer(int broadcastPort, char *retAddr, int *retPort, int *retPlayPort) {
     mySocket = socket(AF_INET, SOCK_DGRAM, 0);
     if (mySocket < 0) error("Couldn't open socket\n");
 
@@ -79,19 +79,21 @@ void ClientSocket::findServer(int broadcastPort, char *retAddr, int *retPort) {
 
     int numbytes;
     struct sockaddr_in their_addr;
-    int buf = 0;
+    struct {
+       int a,b;
+    } thing;
     socklen_t addr_len;
     addr_len = sizeof their_addr;
-    if ((numbytes = recvfrom(mySocket, &buf, 4, 0,
+    if ((numbytes = recvfrom(mySocket, &thing, sizeof(thing), 0,
         (struct sockaddr *)&their_addr, &addr_len)) == -1) {
         error("recvfrom");
     }
 
-    int serverPort = ntohl(buf);
     char serverAddr[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &their_addr.sin_addr, serverAddr, INET_ADDRSTRLEN);
 
-    *retPort = serverPort;
+    *retPort = ntohl(thing.a);
+    *retPlayPort = ntohl(thing.b);
     strcpy(retAddr, serverAddr);
 }
 

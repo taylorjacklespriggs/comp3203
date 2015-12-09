@@ -107,8 +107,17 @@ void ClientGUI::on_fileButton_clicked() {
   //Add filters, so that only certain file types can be selected:
   
   auto filter_mp3 = Gtk::FileFilter::create();
-  filter_mp3->set_name("MP3 files");
+  filter_mp3->set_name("Audio files");
   filter_mp3->add_pattern("*.mp3");
+  filter_mp3->add_pattern("*.wav");
+  filter_mp3->add_pattern("*.ogg");
+  filter_mp3->add_pattern("*.acc");
+  filter_mp3->add_pattern("*.ogg");
+  filter_mp3->add_pattern("*.m4a");
+  filter_mp3->add_pattern("*.mov");
+  filter_mp3->add_pattern("*.avi");
+  filter_mp3->add_pattern("*.mp4");
+  filter_mp3->add_pattern("*.mkv");
   dialog.add_filter(filter_mp3);
 
   //Show the dialog and wait for a user response:

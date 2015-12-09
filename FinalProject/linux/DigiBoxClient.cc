@@ -5,11 +5,8 @@
 #include "DigiBoxClient.h"
 #include "ClientGUI.h"
 
-DigiBoxClient::DigiBoxClient() :
-      playbackPort(4172)
-{
+DigiBoxClient::DigiBoxClient() {
     serverAddr = new char[16];
-    musicFile = "/home/paul/Desktop/201TheImperialMarch.mp3";
 }
 
 DigiBoxClient::~DigiBoxClient() {
@@ -20,7 +17,7 @@ int DigiBoxClient::run() {
     std::cout << "DigiBox client (Linux) now starting...\n";
 
     ClientSocket findSocket;
-    findSocket.findServer(43110, serverAddr, &serverPort);
+    findSocket.findServer(43110, serverAddr, &serverPort, &playbackPort);
     std::cout << "DigiBox server found at " << serverAddr << ":" << serverPort << "\n";
 
     auto app = Gtk::Application::create();
