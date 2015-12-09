@@ -135,7 +135,7 @@ class DigiboxServer:
                 qd.ready()
                 token = self.__gen_token()
                 stream = DigiboxServer.__QueuedStream(token)
-                self.__stream_queue.put(stream)
+                self.__next_stream = stream
                 udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 tries = 0
                 msg = struct.pack('>i', self.__str_server.get_port())\
@@ -154,6 +154,7 @@ class DigiboxServer:
                     self.__metalock.acquire()
                     self.__metalist.pop(0)
                     self.__metalock.release()
+                    self.__next_stream = None
             except queue.Empty:
                 self.__stream_lock.release()
     def __handle_stream(self, conn):
@@ -163,14 +164,10 @@ class DigiboxServer:
         def target():
             try:
                 token = read_bytes(c_sock, TOKEN_LENGTH, self.__gohard)
+                done = False
                 try:
                     while self.__go() and self.__next_stream is None:
-                        try:
-                            self.__next_stream = \
-                                    self.__stream_queue.get(\
-                                        True, MAX_SLEEP)
-                        except queue.Empty:
-                            pass
+                        sleep(MAX_SLEEP)
                     if self.__next_stream.check_token(token):
                         self.__next_stream = None
                         write_string(c_sock, b'go')

@@ -15,6 +15,7 @@ s = socket(AF_INET, SOCK_DGRAM)
 s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 s.sendto(b'', ('<broadcast>', DISCOVERY_PORT))
 msg, addr = s.recvfrom(DISCOVERY_PACKET_SIZE)
+print("Received broadcast message from %s:%d -> %r"%(addr[0], addr[1], msg))
 list_port = struct.unpack('>i', msg[:4])[0]
 ipaddr = addr[0]
 print(list_port)
