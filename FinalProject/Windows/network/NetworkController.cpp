@@ -49,7 +49,7 @@ int NetworkController::startQueueSocket()
 }
 
 void NetworkController::startBroadcastSocket(int broadcastingPort,
-                                             char *retAddr,
+                                             std::string *retAddr,
                                              int *retPort)
 {
 	if((mySocket = socket(AF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
@@ -82,25 +82,6 @@ void NetworkController::startBroadcastSocket(int broadcastingPort,
         == NO_ERROR) {
         pAdapter = pAdapterInfo;
         while (pAdapter) {
-
-            switch (pAdapter->Type) {
-            case MIB_IF_TYPE_OTHER:
-                break;
-            case MIB_IF_TYPE_ETHERNET:
-                break;
-            case MIB_IF_TYPE_TOKENRING:
-                break;
-            case MIB_IF_TYPE_FDDI:
-                break;
-            case MIB_IF_TYPE_PPP:
-                break;
-            case MIB_IF_TYPE_LOOPBACK:
-                break;
-            case MIB_IF_TYPE_SLIP:
-                break;
-            default:
-                break;
-            }
 
             char *ipAddr = pAdapter->IpAddressList.IpAddress.String;
             char *subnet = pAdapter->IpAddressList.IpMask.String;
@@ -138,7 +119,7 @@ void NetworkController::startBroadcastSocket(int broadcastingPort,
     inet_ntop(AF_INET, &their_addr.sin_addr, serverAddr, 16);
 
     *retPort = serverPort;
-    strcpy(retAddr, serverAddr);
+    *retAddr = std::string(serverAddr);    
 }
 
 void NetworkController::makeConnnection(std::string server, int port)

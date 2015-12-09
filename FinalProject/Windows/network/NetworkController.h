@@ -24,7 +24,7 @@ public:
 	std::string sendMetadata(std::vector<std::string>);
 	int startQueueSocket();
 	void startTCPSocket();
-	void startBroadcastSocket(int, char *, int *);
+	void startBroadcastSocket(int, std::string *, int *);
 	void initiateStream(char *);
 
 	void sendInt(int);
