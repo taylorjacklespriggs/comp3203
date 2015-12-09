@@ -3,10 +3,11 @@
 #include <gtkmm/application.h>
 
 #include "DigiBoxClient.h"
-#include "ClientSocket.h"
 #include "ClientGUI.h"
 
-DigiBoxClient::DigiBoxClient() {
+DigiBoxClient::DigiBoxClient() :
+      playbackPort(4172)
+{
     serverAddr = new char[16];
     musicFile = "/home/paul/Desktop/201TheImperialMarch.mp3";
 }
@@ -43,10 +44,7 @@ void DigiBoxClient::connect() {
     ClientSocket *metaSock = new ClientSocket();
     metaSock->makeConnection(serverAddr, serverPort);
 
-    //MetadataController *metaCtrl = new MetadataController(musicFile);
-    //std::unordered_map<std::string, std::string> *metadata = metaCtrl->getMetadata();
     metaSock->sendMetadata(&metadata);
-    //delete(metaCtrl);
 
     std::string reply = metaSock->recvString();
     if (reply.compare("wait") != 0) {
@@ -82,4 +80,42 @@ void DigiBoxClient::connect() {
     } else {
         std::cout << "Stream authentication failed: " << streamStatus << ". Aborting.\n";
     }
+}
+
+void DigiBoxClient::play() {
+    ClientSocket sock;
+    sock.makeConnection(serverAddr, playbackPort);
+    sock.sendInt(3);
+    sock.sendString("request");
+    sock.sendString("playback");
+    sock.sendString("action");
+    sock.sendString("play");
+    sock.sendString("password");
+    sock.sendString("boxdigger");
+    sleep(5); //sleep a bit to prevent connection from breaking early
+}
+void DigiBoxClient::pause() {
+    ClientSocket *sock = new ClientSocket();
+    sock->makeConnection(serverAddr, playbackPort);
+    sock->sendInt(3);
+    sock->sendString("request");
+    sock->sendString("playback");
+    sock->sendString("action");
+    sock->sendString("pause");
+    sock->sendString("password");
+    sock->sendString("boxdigger");
+    sleep(5); //sleep a bit to prevent connection from breaking early
+    delete sock;
+}
+void DigiBoxClient::next() {
+    ClientSocket sock;
+    sock.makeConnection(serverAddr, playbackPort);
+    sock.sendInt(3);
+    sock.sendString("request");
+    sock.sendString("playback");
+    sock.sendString("action");
+    sock.sendString("next");
+    sock.sendString("password");
+    sock.sendString("boxdigger");
+    sleep(5); //sleep a bit to prevent connection from breaking early
 }
