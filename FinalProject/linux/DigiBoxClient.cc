@@ -9,13 +9,10 @@
 DigiBoxClient::DigiBoxClient() {
     serverAddr = new char[16];
     musicFile = "/home/paul/Desktop/201TheImperialMarch.mp3";
-    //metadata = new std::unordered_map<std::string, std::string>();
-    //metadata = new std::unordered_map<std::string, std::string>();
 }
 
 DigiBoxClient::~DigiBoxClient() {
     delete[] serverAddr;
-    //delete metadata;
 }
 
 int DigiBoxClient::run() {
@@ -29,8 +26,6 @@ int DigiBoxClient::run() {
 
     ClientGUI gui(this);
     return app->run(gui);
-
-    //connect();
 }
 
 std::unordered_map<std::string, std::string> DigiBoxClient::setMetadata(std::string fileName) {

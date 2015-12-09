@@ -155,8 +155,9 @@ void ClientGUI::streamStateWrap(ClientGUI *me) {
 }
 
 void ClientGUI::on_queueButton_clicked() {
-    std::thread streamThread(&ClientGUI::streamStateWrap, this);
-    streamThread.detach();
+    //std::thread streamThread(&ClientGUI::streamStateWrap, this);
+    //streamThread.detach();
+    streamState();
 }
 
 void ClientGUI::setMargins(Gtk::Widget *w, int to, int ri, int bo, int le) {
