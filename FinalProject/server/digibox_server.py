@@ -181,12 +181,12 @@ class DigiboxServer:
                         write_string(c_sock, b'fail')
                 except Exception as e:
                     self.__log(("There was a problem streaming "
-                        + "from %s: %s")%\
+                        + "from %s: %r")%\
                             (c_addr[0], e))
                 finally:
                     self.__next_stream = None
             except Exception as e:
-                self.__log("There was a problem with the stream: %s"%e)
+                self.__log("There was a problem with the stream: %r"%e)
             finally:
                 c_sock.close()
         threading.Thread(target=target).start()
