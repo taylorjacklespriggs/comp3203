@@ -13,9 +13,7 @@ class DigiBoxClient
         int run();
         std::unordered_map<std::string, std::string> setMetadata(std::string fileName);
         void connect();
-        void play();
-        void pause();
-        void next();
+        void playbackAction(std::string action);
     private:
         int playbackPort;
         char *serverAddr;

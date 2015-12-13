@@ -34,6 +34,7 @@ class ClientGUI : public Gtk::Window {
         void on_nextButton_clicked();
         void streamState();
         static void streamStateWrap(ClientGUI *me);
+        static void playbackWrap(ClientGUI *me, std::string action);
         void setMargins(Gtk::Widget *w, int to, int ri, int bo, int le);
 
 };

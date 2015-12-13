@@ -4,6 +4,7 @@
 
 #include "DigiBoxClient.h"
 #include "ClientGUI.h"
+#include <X11/Xlib.h>
 
 DigiBoxClient::DigiBoxClient() {
     serverAddr = new char[16];
@@ -19,6 +20,8 @@ int DigiBoxClient::run() {
     ClientSocket findSocket;
     findSocket.findServer(43110, serverAddr, &serverPort, &playbackPort);
     std::cout << "DigiBox server found at " << serverAddr << ":" << serverPort << "\n";
+
+    XInitThreads();
 
     auto app = Gtk::Application::create();
 
@@ -79,40 +82,15 @@ void DigiBoxClient::connect() {
     }
 }
 
-void DigiBoxClient::play() {
+void DigiBoxClient::playbackAction(std::string action) {
     ClientSocket sock;
     sock.makeConnection(serverAddr, playbackPort);
     sock.sendInt(3);
     sock.sendString("request");
     sock.sendString("playback");
     sock.sendString("action");
-    sock.sendString("play");
+    sock.sendString(action.c_str());
     sock.sendString("password");
     sock.sendString("boxdigger");
-    sleep(5); //sleep a bit to prevent connection from breaking early
-}
-void DigiBoxClient::pause() {
-    ClientSocket *sock = new ClientSocket();
-    sock->makeConnection(serverAddr, playbackPort);
-    sock->sendInt(3);
-    sock->sendString("request");
-    sock->sendString("playback");
-    sock->sendString("action");
-    sock->sendString("pause");
-    sock->sendString("password");
-    sock->sendString("boxdigger");
-    sleep(5); //sleep a bit to prevent connection from breaking early
-    delete sock;
-}
-void DigiBoxClient::next() {
-    ClientSocket sock;
-    sock.makeConnection(serverAddr, playbackPort);
-    sock.sendInt(3);
-    sock.sendString("request");
-    sock.sendString("playback");
-    sock.sendString("action");
-    sock.sendString("next");
-    sock.sendString("password");
-    sock.sendString("boxdigger");
-    sleep(5); //sleep a bit to prevent connection from breaking early
+    sleep(1); //sleep a bit to prevent broken pipe on server
 }

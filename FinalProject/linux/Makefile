@@ -1,7 +1,7 @@
 PROGRAM = DigiBoxClient
 
 STD = -std=c++11
-GTKMM = `pkg-config gtkmm-3.0 --cflags --libs`
+GTKMM = `pkg-config gtkmm-3.0 --cflags --libs` -lX11
 
 ODIR = object/
 

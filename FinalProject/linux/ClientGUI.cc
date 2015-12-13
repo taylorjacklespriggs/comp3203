@@ -162,21 +162,27 @@ void ClientGUI::streamStateWrap(ClientGUI *me) {
 }
 
 void ClientGUI::on_queueButton_clicked() {
-    //std::thread streamThread(&ClientGUI::streamStateWrap, this);
-    //streamThread.detach();
-    streamState();
+    std::thread streamThread(&ClientGUI::streamStateWrap, this);
+    streamThread.detach();
 }
 
 void ClientGUI::on_playButton_clicked() {
-    client->play();
+    std::thread t(&ClientGUI::playbackWrap, this, "play");
+    t.detach();
 }
 
 void ClientGUI::on_pauseButton_clicked() {
-    client->pause();
+    std::thread t(&ClientGUI::playbackWrap, this, "pause");
+    t.detach();
 }
 
 void ClientGUI::on_nextButton_clicked() {
-    client->next();
+    std::thread t(&ClientGUI::playbackWrap, this, "next");
+    t.detach();
+}
+
+void ClientGUI::playbackWrap(ClientGUI *me, std::string action) {
+    me->client->playbackAction(action);
 }
 
 void ClientGUI::setMargins(Gtk::Widget *w, int to, int ri, int bo, int le) {
