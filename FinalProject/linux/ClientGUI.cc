@@ -16,6 +16,7 @@ ClientGUI::ClientGUI(DigiBoxClient *c) :
     pauseButton("Pause/Play"), 
     nextButton("Next")
 {
+    // Extra form elements
     Gtk::Label *title = Gtk::manage(new Gtk::Label("DigiBox"));
     Gtk::Label *strmLabel = Gtk::manage(new Gtk::Label("Add a song to the playlist"));
     metaLayout = Gtk::manage(new Gtk::Grid());
@@ -23,27 +24,21 @@ ClientGUI::ClientGUI(DigiBoxClient *c) :
     Gtk::Separator *partition = Gtk::manage(new Gtk::Separator());
     Gtk::Label *ctrlLabel = Gtk::manage(new Gtk::Label("Playback controls"));
 
+    // Load CSS style
     auto css = Gtk::CssProvider::create();
     css->load_from_path("style.css");
     get_style_context()->add_provider_for_screen(get_screen(), css, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
+    // Add CSS classes
     title->get_style_context()->add_class("title");
     strmLabel->get_style_context()->add_class("heading");
     ctrlLabel->get_style_context()->add_class("heading");
-    //get_style_context()->add_provider(css, 0);
 
+    // Set styling options
     fileButton.set_relief(Gtk::RELIEF_NONE);
     queueButton.set_relief(Gtk::RELIEF_NONE);
     pauseButton.set_relief(Gtk::RELIEF_NONE);
     nextButton.set_relief(Gtk::RELIEF_NONE);
-
-    //Pango::FontDescription titleFont("bold 20");
-    //Pango::FontDescription labelFont("bold 10");
-    //Gdk::RGBA titleBGC("FFFFFFFF");
-    //title->override_font(titleFont);
-    //title->override_background_color(titleBGC);
-    //strmLabel->override_font(labelFont);
-    //ctrlLabel->override_font(labelFont);
 
     set_default_size(400, 400);
 
@@ -66,16 +61,10 @@ ClientGUI::ClientGUI(DigiBoxClient *c) :
     setMargins(&pauseButton,10,5,10,10);
     setMargins(&nextButton,10,10,10,5);
 
+    // Attach elements to grids
     metaLayout->attach(*label, 0, 0, 1, 1);
     metaFrame.add(*metaLayout);
 
-    //mainLayout.attach(fileButton, 0, 0, 2, 1);
-    //mainLayout.attach(metaFrame, 0, 1, 2, 1);
-    //mainLayout.attach(queueButton, 0, 2, 2, 1);
-    //mainLayout.attach(*partition, 0, 3, 2, 1);
-    //mainLayout.attach(pauseButton, 0, 4, 1, 1);
-    //mainLayout.attach(nextButton, 1, 4, 1, 1);
-    
     mainLayout.attach(*title, 0, 0, 2, 1);
     mainLayout.attach(*strmLabel, 0, 1, 2, 1);
     mainLayout.attach(fileButton, 0, 2, 2, 1);
@@ -86,6 +75,7 @@ ClientGUI::ClientGUI(DigiBoxClient *c) :
     mainLayout.attach(pauseButton, 0, 7, 1, 1);
     mainLayout.attach(nextButton, 1, 7, 1, 1);
 
+    // Display elements
     add(mainLayout);
     show_all_children();
 

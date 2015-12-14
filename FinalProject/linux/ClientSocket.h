@@ -19,7 +19,7 @@ class ClientSocket
         int serverBind();
         void findServer(int port, char *retAddr, int *retPort, int *retPlayPort);
         void sendMetadata(std::unordered_map<std::string, std::string> *metadata);
-        void sendInt(int msg);
+        int sendInt(int msg);
         void sendString(const char *msg);
         int recvInt();
         std::string recvString();

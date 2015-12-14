@@ -110,10 +110,11 @@ void ClientSocket::error(const char *msg) {
     exit(0);
 }
 
-void ClientSocket::sendInt(int msg) {
+int ClientSocket::sendInt(int msg) {
     int tmp = htonl(msg);
-    int success = send(mySocket, &tmp, 4, 0);
-    if (success < 0) error("Problem sending int\n");
+    return send(mySocket, &tmp, 4, 0);
+    //int success = send(mySocket, &tmp, 4, 0);
+    //if (success < 0) error("Problem sending int\n");
 }
 
 void ClientSocket::sendString(const char *msg) {
@@ -164,13 +165,16 @@ void ClientSocket::sendFile(std::string fileName) {
     int BUFFERSIZE = 512;
     infile.seekg(0, std::ios::beg);
 
+    int success = 0;
     while (!infile.eof()) {
         char buffer[BUFFERSIZE];
         infile.read(buffer, BUFFERSIZE);
-        sendInt(infile.gcount());
-        send(mySocket, buffer, infile.gcount(), 0);
+        success = sendInt(infile.gcount());
+        if (success < 0) break;
+        success = send(mySocket, buffer, infile.gcount(), 0);
+        if (success < 0) break;
     }
 
-    sendInt(0);
+    if (success >= 0) sendInt(0);
     infile.close();
 }
