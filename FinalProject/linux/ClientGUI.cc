@@ -1,7 +1,11 @@
 #include <thread>
 #include <iostream>
 #include <gtkmm/label.h>
+#include <gtkmm/separator.h>
 #include <gtkmm.h>
+#include <pangomm/fontdescription.h>
+#include <gtkmm/cssprovider.h>
+#include <gtkmm/stylecontext.h>
 #include "ClientGUI.h"
 
 ClientGUI::ClientGUI(DigiBoxClient *c) :
@@ -9,42 +13,87 @@ ClientGUI::ClientGUI(DigiBoxClient *c) :
     fileButton("Choose Song"),
     metaFrame("Selected Song"),
     queueButton("Stream Song"),
-    playButton("Play"), 
-    pauseButton("Pause"), 
+    pauseButton("Pause/Play"), 
     nextButton("Next")
 {
-    set_default_size(400, 400);
-    fileButton.set_hexpand(true);
-    setMargins(&fileButton,10,10,10,10);
-    setMargins(&queueButton,10,10,10,10);
-    setMargins(&playButton,0,5,10,10);
-    setMargins(&pauseButton,0,5,10,5);
-    setMargins(&nextButton,0,10,10,5);
-    queueButton.set_sensitive(false);
-    setMargins(&metaFrame, 0, 10, 0, 10);
-    metaFrame.set_vexpand(true);
-
-    mainLayout.attach(fileButton, 0, 0, 3, 1);
-    mainLayout.attach(metaFrame, 0, 1, 3, 1);
-    mainLayout.attach(queueButton, 0, 2, 3, 1);
-    mainLayout.attach(playButton, 0, 3, 1, 1);
-    mainLayout.attach(pauseButton, 1, 3, 1, 1);
-    mainLayout.attach(nextButton, 2, 3, 1, 1);
-
+    Gtk::Label *title = Gtk::manage(new Gtk::Label("DigiBox"));
+    Gtk::Label *strmLabel = Gtk::manage(new Gtk::Label("Add a song to the playlist"));
     metaLayout = Gtk::manage(new Gtk::Grid());
     Gtk::Label *label = Gtk::manage(new Gtk::Label("Please select a song."));
+    Gtk::Separator *partition = Gtk::manage(new Gtk::Separator());
+    Gtk::Label *ctrlLabel = Gtk::manage(new Gtk::Label("Playback controls"));
+
+    auto css = Gtk::CssProvider::create();
+    css->load_from_path("style.css");
+    get_style_context()->add_provider_for_screen(get_screen(), css, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    title->get_style_context()->add_class("title");
+    strmLabel->get_style_context()->add_class("heading");
+    ctrlLabel->get_style_context()->add_class("heading");
+    //get_style_context()->add_provider(css, 0);
+
+    fileButton.set_relief(Gtk::RELIEF_NONE);
+    queueButton.set_relief(Gtk::RELIEF_NONE);
+    pauseButton.set_relief(Gtk::RELIEF_NONE);
+    nextButton.set_relief(Gtk::RELIEF_NONE);
+
+    //Pango::FontDescription titleFont("bold 20");
+    //Pango::FontDescription labelFont("bold 10");
+    //Gdk::RGBA titleBGC("FFFFFFFF");
+    //title->override_font(titleFont);
+    //title->override_background_color(titleBGC);
+    //strmLabel->override_font(labelFont);
+    //ctrlLabel->override_font(labelFont);
+
+    set_default_size(400, 400);
+
+    fileButton.set_hexpand(true);
+    metaFrame.set_vexpand(true);
+    label->set_hexpand(true);
+    label->set_vexpand(true);
+
+    strmLabel->set_halign(Gtk::ALIGN_START);
+    ctrlLabel->set_halign(Gtk::ALIGN_START);
+
+    queueButton.set_sensitive(false);
+
+    setMargins(&fileButton,10,10,10,10);
+    setMargins(strmLabel,10,10,0,10);
+    setMargins(&metaFrame,0,10,0,10);
+    setMargins(&queueButton,10,10,10,10);
+    setMargins(partition,0,10,0,10);
+    setMargins(ctrlLabel,10,10,0,10);
+    setMargins(&pauseButton,10,5,10,10);
+    setMargins(&nextButton,10,10,10,5);
+
     metaLayout->attach(*label, 0, 0, 1, 1);
     metaFrame.add(*metaLayout);
+
+    //mainLayout.attach(fileButton, 0, 0, 2, 1);
+    //mainLayout.attach(metaFrame, 0, 1, 2, 1);
+    //mainLayout.attach(queueButton, 0, 2, 2, 1);
+    //mainLayout.attach(*partition, 0, 3, 2, 1);
+    //mainLayout.attach(pauseButton, 0, 4, 1, 1);
+    //mainLayout.attach(nextButton, 1, 4, 1, 1);
+    
+    mainLayout.attach(*title, 0, 0, 2, 1);
+    mainLayout.attach(*strmLabel, 0, 1, 2, 1);
+    mainLayout.attach(fileButton, 0, 2, 2, 1);
+    mainLayout.attach(metaFrame, 0, 3, 2, 1);
+    mainLayout.attach(queueButton, 0, 4, 2, 1);
+    mainLayout.attach(*partition, 0, 5, 2, 1);
+    mainLayout.attach(*ctrlLabel, 0, 6, 2, 1);
+    mainLayout.attach(pauseButton, 0, 7, 1, 1);
+    mainLayout.attach(nextButton, 1, 7, 1, 1);
 
     add(mainLayout);
     show_all_children();
 
+    // Connect button handlers
     fileButton.signal_clicked().connect(sigc::mem_fun(*this,
               &ClientGUI::on_fileButton_clicked));
     queueButton.signal_clicked().connect(sigc::mem_fun(*this,
               &ClientGUI::on_queueButton_clicked));
-    playButton.signal_clicked().connect(sigc::mem_fun(*this,
-              &ClientGUI::on_playButton_clicked));
     pauseButton.signal_clicked().connect(sigc::mem_fun(*this,
               &ClientGUI::on_pauseButton_clicked));
     nextButton.signal_clicked().connect(sigc::mem_fun(*this,
@@ -99,6 +148,8 @@ void ClientGUI::on_fileButton_clicked() {
   Gtk::FileChooserDialog dialog("Please choose a file",
           Gtk::FILE_CHOOSER_ACTION_OPEN);
   dialog.set_transient_for(*this);
+
+  dialog.reset_style();
 
   //Add response buttons the the dialog:
   dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
@@ -164,11 +215,6 @@ void ClientGUI::streamStateWrap(ClientGUI *me) {
 void ClientGUI::on_queueButton_clicked() {
     std::thread streamThread(&ClientGUI::streamStateWrap, this);
     streamThread.detach();
-}
-
-void ClientGUI::on_playButton_clicked() {
-    std::thread t(&ClientGUI::playbackWrap, this, "play");
-    t.detach();
 }
 
 void ClientGUI::on_pauseButton_clicked() {

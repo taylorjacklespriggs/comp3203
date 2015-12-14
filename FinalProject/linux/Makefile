@@ -27,3 +27,6 @@ $(ODIR)MetadataController.o:	MetadataController.h MetadataController.cc
 
 $(ODIR)ClientGUI.o:	ClientGUI.h ClientGUI.cc
 	g++ $(STD) -c ClientGUI.cc -o $(ODIR)ClientGUI.o $(GTKMM)
+
+clean:
+	rm $(PROGRAM) object/*

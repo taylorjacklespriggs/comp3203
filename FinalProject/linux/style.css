@@ -1,0 +1,43 @@
+* {
+  font-size: 12px;
+  color: white;
+}
+
+GtkWindow {
+  background-color: #404040;
+}
+GtkSeparator {
+  color: #A1A1A1;
+}
+.title {
+  font-size: 20px;
+  background-color: #EC971F;
+  padding: 10px 10px;
+  font-weight: bold;
+  background-image: -gtk-gradient (linear, left top, left bottom, from (#EC971F), to (rgb(163,103,14)));
+}
+.heading {
+  font-weight: bold;
+}
+GtkLabel {
+  color: white;
+}
+GtkButton {
+  background-image: -gtk-gradient (linear, left top, left bottom, from (#337ab7), to (#444488));
+}
+GtkButton:active {
+  color: #fff;
+  background-color: #286090;
+  border-color: #204d74;
+  background-image: none;
+}
+
+GtkButton:insensitive {
+  background-color: rgb(122,169,208);
+  border-color: #2E6DA4;
+  background-image: none;
+}
+
+GtkFileChooser GtkFileChooserWidget GtkWidget {
+  color: black;
+}
