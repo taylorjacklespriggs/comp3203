@@ -1,3 +1,0 @@
-open("filename", "...", encoding="ascii")
-IS NOT REQUIRED IF WE OPEN WITH b
-open("filename", "...b")
